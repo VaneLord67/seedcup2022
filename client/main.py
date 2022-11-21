@@ -117,7 +117,7 @@ def cliGetInitReq():
     )
 
 
-def cliGetActionReq(characterID: int):
+def cliGetActionReq(characterID: int, model):
     """Get action request from user input.
 
     Args:
@@ -146,7 +146,7 @@ def cliGetActionReq(characterID: int):
 
     actionReqs = []
 
-    actions = input()
+    actions = model.output()
 
     for s in get_action(actions):
         actionReq = ActionReq(characterID, *str2action[s])
@@ -253,7 +253,7 @@ def main():
         while not gContext["gameOverFlag"]:
             if gContext["characterID"] is None:
                 continue
-            if action := cliGetActionReq(gContext["characterID"]):
+            if action := cliGetActionReq(gContext["characterID"], client.model):
                 actionPacket = PacketReq(PacketType.ActionReq, action)
                 client.send(actionPacket)
 

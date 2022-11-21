@@ -1,11 +1,13 @@
 from resp import *
+import time
 
 class Model(object):
     def __init__(self):
         pass
 
-    def output():
-        return "dsj"
+    def output(self):
+        time.sleep(0.1)
+        return 'dsj'
 
     def input(self, resp: PacketResp):
         fileName='log_player.txt'
