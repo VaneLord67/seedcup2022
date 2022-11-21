@@ -1,2 +1,4 @@
 log*
 documents/**
+__pycache__/**
+client/__pycache__/**

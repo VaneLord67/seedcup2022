@@ -12,6 +12,7 @@ from threading import Thread
 from itertools import cycle
 from time import sleep
 import sys
+from model import *
 
 # logger config
 logging.basicConfig(
@@ -63,6 +64,7 @@ class Client(object):
         self.port = self.config.get("Port")
         assert self.host and self.port, "host and port must be provided"
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.model = Model()
 
     def connect(self):
         if self.socket.connect_ex((self.host, self.port)) == 0:
@@ -92,6 +94,7 @@ class Client(object):
         # uncomment this will show resp packet
         # logger.info(f"recv PacketResp, content: {result}")
         packet = PacketResp().from_json(result)
+        self.model.input(packet)
         return packet
 
     def __enter__(self):
