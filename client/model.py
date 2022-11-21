@@ -95,12 +95,14 @@ class Model(object):
         self.resp = resp
         #self.character = resp['data']['characters']
         #self.map = resp['data']['map']
+        if resp.type == PacketType.GameOver:
+            return
         self.character = resp.data.characters
         self.map = resp.data.map
         #save to file 
         with open(fileName, 'a+')as file:
             print("resp = ", resp, file=file)
-    
+
 
 if __name__ == "__main__":
     def getresp(fileName='log_player.txt',frame=None):
@@ -111,10 +113,10 @@ if __name__ == "__main__":
                 yield match.strip()
     model = Model(1,2)
     for s in getresp():
-        PacketResp()
-        resp = json.loads(s)
-        model.resp = resp
-        model.character = resp['data']['characters']
-        model.map = resp['data']['map']
+        packetResp = PacketResp()
+        actionResp = packetResp.from_json(s).data
+        model.resp = actionResp
+        model.character = actionResp.characters
+        model.map = actionResp.map
         action = model.output()
         print(action)
