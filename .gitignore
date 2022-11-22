@@ -2,3 +2,6 @@ log*
 documents/**
 __pycache__/**
 client/__pycache__/**
+build
+dist
+main.spec

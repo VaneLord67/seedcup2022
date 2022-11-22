@@ -1,7 +1,6 @@
 from resp import *
 import time 
-import re 
-import json
+
 point = {
     "wall":-1,
     "othersland":2,
@@ -82,26 +81,58 @@ class Model(object):
         self.character = None
         self.map = None
     def output(self):
+        if not self.isAlive():
+            return ""
         dir_score = get_dir_score(map = self.map ,c = self.character[0],weapon=2)
-        st = direction(dir_score)+'sj'
+        st = direction(dir_score)
+        if not self.isInMasterWeaponCD():
+            if not self.isInMoveCD(): 
+                st += 'sj'
+        if not self.isInSlaveWeaponCD():
+            st += 'k'
         time.sleep(0.1)
         fileName='log_opearator.txt'
-        with open(fileName, 'a+')as file:
+        with open(fileName, 'a+') as file:
             print(st, dir_score, file=file)
         return st
 
     def input(self, resp: PacketResp):
         fileName='log_player.txt'
-        self.resp = resp
         #self.character = resp['data']['characters']
         #self.map = resp['data']['map']
         if resp.type == PacketType.GameOver:
             return
+        actionResp = resp.data
+        self.resp = actionResp
         self.character = resp.data.characters
         self.map = resp.data.map
         #save to file 
         with open(fileName, 'a+')as file:
             print("resp = ", resp, file=file)
+
+    def isInMasterWeaponCD(self):
+        for character in self.resp.characters:
+            if character.masterWeapon.attackCDLeft == 0:
+                return False
+        return True
+
+    def isInSlaveWeaponCD(self):
+        for character in self.resp.characters:
+            if character.slaveWeapon.attackCDLeft == 0:
+                return False
+        return True
+    
+    def isInMoveCD(self):
+        for character in self.resp.characters:
+            if character.moveCDLeft == 0:
+                return False
+        return True
+
+    def isAlive(self):
+        for character in self.resp.characters:
+            return character.isAlive
+        return False
+            
 
 
 if __name__ == "__main__":
