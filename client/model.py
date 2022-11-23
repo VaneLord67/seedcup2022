@@ -154,8 +154,8 @@ class Model(object):
         self.map = None
         self.t = time.time()
 
-        self.color: int
-        self.playerID: int
+        self.color: int = 0
+        self.playerID: int = 0
         self.dirs: list(tuple(int, int)) = [(-1,1),(0,1),(1,0),(1,-1),(0,-1),(-1,0)]
     def output(self):
         time.sleep(0.1)
@@ -171,7 +171,7 @@ class Model(object):
         if not self.isInSlaveWeaponCD():
             st += self.getKiwifruitAttackDirStr()
             st += 'k'
-        time.sleep(0.1)
+        #time.sleep(0.1)
         #record
         
         fileName='log_opearator.txt'
@@ -222,12 +222,12 @@ class Model(object):
             return character.isAlive
         return False
 
-    def getKiwifruitAttackDirStr(self) -> str:
-        scores: list(int) = self.getKiwifruitScore((self.character[0].x, self.character[0].y))
-        maxIndex: int = scores.index(max(scores))
+    def getKiwifruitAttackDirStr(self):
+        scores = self.getKiwifruitScore((self.character[0].x, self.character[0].y))
+        maxIndex = scores.index(max(scores))
         return directiondic[maxIndex]
 
-    def getKiwifruitScore(self, pos: tuple) -> list():
+    def getKiwifruitScore(self, pos: tuple):
         '''猕猴桃分数计算'''
         # 猕猴桃每回合移动1次，最⼤距离为8
         playerX = pos[0]
@@ -241,7 +241,7 @@ class Model(object):
             scores.append(dirScore)
         return scores
             
-    def getBlockScore(self, blockPos: tuple) -> int:
+    def getBlockScore(self, blockPos: tuple):
         block: Block = get_block(self.map.blocks, blockPos)
         score: int = 0
         if block == None or block.valid == False:
@@ -254,7 +254,7 @@ class Model(object):
             score += point['enemy']
         return score
     
-    def isEnemyStandInBlock(self, block: Block) -> bool:
+    def isEnemyStandInBlock(self, block: Block):
         if block == None:
             return False
         if len(block.objs) == 0:
