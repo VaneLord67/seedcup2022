@@ -1,8 +1,8 @@
 from resp import *
 from base import *
+from main import *
 import time 
 
-whitelandColor: int = 0
 point = {
     "wall":-1,
     "othersland":2,
@@ -155,7 +155,7 @@ class Model(object):
         self.t = time.time()
 
         self.color: int = 0
-        self.playerID: int = 0
+        self.playerID: int = gContext['playerID']
         self.dirs: list(tuple(int, int)) = [(-1,1),(0,1),(1,0),(1,-1),(0,-1),(-1,0)]
     def output(self):
         time.sleep(0.1)
@@ -194,7 +194,7 @@ class Model(object):
         self.character = actionResp.characters
         self.map = actionResp.map
         self.color: int = actionResp.characters[0].color
-        self.playerID: int = actionResp.playerID
+
         #save to file 
         with open(fileName, 'a+')as file:
             print("resp = ", resp, file=file)
@@ -246,7 +246,7 @@ class Model(object):
         score: int = 0
         if block == None or block.valid == False:
             score += point['wall']
-        elif block.color == whitelandColor:
+        elif block.color == ColorType.White:
             score += point['whiteland']
         elif block.color != self.color:
             score += point['othersland']
