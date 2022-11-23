@@ -161,13 +161,15 @@ class Model(object):
         time.sleep(0.1)
         if not self.isAlive():
             return ""
+        st = ''
         frame = self.resp.frame
-        dir_score = get_dir_score(map = self.map ,c = self.character[0],weapon=2)
-        tool_score = get_tool_score(map = self.map ,c = self.character[0])
-        st = direction(dir_score,tool_score)
+        if not self.isInMoveCD(): 
+            dir_score = get_dir_score(map = self.map ,c = self.character[0],weapon=2)
+            tool_score = get_tool_score(map = self.map ,c = self.character[0])
+            st = direction(dir_score,tool_score)
+            st +='s'
         if not self.isInMasterWeaponCD():
-            if not self.isInMoveCD(): 
-                st += 'sj'
+                st += 'j'
         if not self.isInSlaveWeaponCD():
             st += self.getKiwifruitAttackDirStr()
             st += 'k'
@@ -177,7 +179,7 @@ class Model(object):
         fileName='log_opearator.txt'
         with open(fileName, 'a+') as file:
             print('frame:{}'.format(frame), file=file)
-            print('operations is {}'.format(st), dir_score, file=file)
+            print('operations is {}'.format(st), file=file)
             t = time.time()
             print('model cost {%.3f} s'%(t-self.t),file=file)
             self.t = t
