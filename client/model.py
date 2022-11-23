@@ -1,12 +1,15 @@
 from resp import *
+from base import *
 import time 
 
+whitelandColor: int = 0
 point = {
     "wall":-1,
     "othersland":2,
     "whiteland":1,
     "faster":5,
-    "blood":3
+    "blood":3,
+    "enemy": 10
 }
 directiondic ='wedxza'
 def argmax(l=[1,2,3,3]):
@@ -151,7 +154,11 @@ class Model(object):
         self.map = None
         self.t = time.time()
 
+        self.color: int
+        self.playerID: int
+        self.dirs: list(tuple(int, int)) = [(-1,1),(0,1),(1,0),(1,-1),(0,-1),(-1,0)]
     def output(self):
+        time.sleep(0.1)
         if not self.isAlive():
             return ""
         frame = self.resp.frame
@@ -162,6 +169,7 @@ class Model(object):
             if not self.isInMoveCD(): 
                 st += 'sj'
         if not self.isInSlaveWeaponCD():
+            st += self.getKiwifruitAttackDirStr()
             st += 'k'
         time.sleep(0.1)
         #record
@@ -181,10 +189,12 @@ class Model(object):
         #self.map = resp['data']['map']
         if resp.type == PacketType.GameOver:
             return
-        actionResp = resp.data
+        actionResp: ActionResp = resp.data
         self.resp = actionResp
-        self.character = resp.data.characters
-        self.map = resp.data.map
+        self.character = actionResp.characters
+        self.map = actionResp.map
+        self.color: int = actionResp.characters[0].color
+        self.playerID: int = actionResp.playerID
         #save to file 
         with open(fileName, 'a+')as file:
             print("resp = ", resp, file=file)
@@ -211,8 +221,50 @@ class Model(object):
         for character in self.resp.characters:
             return character.isAlive
         return False
-            
 
+    def getKiwifruitAttackDirStr(self) -> str:
+        scores: list(int) = self.getKiwifruitScore((self.character[0].x, self.character[0].y))
+        maxIndex: int = scores.index(max(scores))
+        return directiondic[maxIndex]
+
+    def getKiwifruitScore(self, pos: tuple) -> list():
+        '''猕猴桃分数计算'''
+        # 猕猴桃每回合移动1次，最⼤距离为8
+        playerX = pos[0]
+        playerY = pos[1]
+        scores = []
+        for dirX, dirY in self.dirs:
+            dirScore: int = 0
+            for i in range(1, 8):
+                blockScore: int = self.getBlockScore((playerX + dirX*i, playerY + dirY*i))
+                dirScore += blockScore
+            scores.append(dirScore)
+        return scores
+            
+    def getBlockScore(self, blockPos: tuple) -> int:
+        block: Block = get_block(self.map.blocks, blockPos)
+        score: int = 0
+        if block == None or block.valid == False:
+            score += point['wall']
+        elif block.color == whitelandColor:
+            score += point['whiteland']
+        elif block.color != self.color:
+            score += point['othersland']
+        if self.isEnemyStandInBlock(block):
+            score += point['enemy']
+        return score
+    
+    def isEnemyStandInBlock(self, block: Block) -> bool:
+        if block == None:
+            return False
+        if len(block.objs) == 0:
+            return False
+        for obj in block.objs:
+            if obj.type != ObjType.Character:
+                return False
+            if obj.status.playerID != self.playerID:
+                return True
+        return False
 
 if __name__ == "__main__":
     def getresp(fileName='log_player.txt'):
