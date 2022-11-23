@@ -1,5 +1,6 @@
 from resp import *
 from base import *
+from main import *
 import time 
 
 point = {
@@ -154,6 +155,7 @@ class Model(object):
         self.t = time.time()
 
         self.color: int = 0
+        self.playerID: int = gContext['playerID']
         self.dirs: list(tuple(int, int)) = [(-1,1),(0,1),(1,0),(1,-1),(0,-1),(-1,0)]
         self.playerID: int
     def output(self):
