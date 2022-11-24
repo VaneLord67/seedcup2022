@@ -1,6 +1,6 @@
 from resp import *
 from base import *
-from main import *
+from main import gContext
 import time 
 
 point = {
@@ -162,12 +162,15 @@ class Model(object):
         if not self.isAlive():
             return ""
         frame = self.resp.frame
-        dir_score = get_dir_score(map = self.map ,c = self.character[0],weapon=2)
-        tool_score = get_tool_score(map = self.map ,c = self.character[0])
-        st = direction(dir_score,tool_score)
+        st = ""
+        dir_score = []
+        if not self.isInMoveCD():
+            dir_score = get_dir_score(map = self.map ,c = self.character[0],weapon=2)
+            tool_score = get_tool_score(map = self.map ,c = self.character[0])
+            st = direction(dir_score,tool_score)
+            st += 's'
         if not self.isInMasterWeaponCD():
-            if not self.isInMoveCD(): 
-                st += 'sj'
+                st += 'j'
         if not self.isInSlaveWeaponCD():
             st += self.getKiwifruitAttackDirStr()
             st += 'k'
