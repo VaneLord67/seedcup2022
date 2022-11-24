@@ -2,6 +2,11 @@ from base import *
 from resp import *
 from config import config
 from functools import reduce
+from environment import *
+import threading
+import math
+
+mutex = threading.Lock()
 
 color2emoji = {
     ColorType.White: Emoji.WhiteBrick,
@@ -105,6 +110,16 @@ class UI(object):
         self._characters = characters
         self._score = score
         self._kill = kill
+        self.env: Environment
+        self.scoreReward: int = 0
+        self.enemyScore: int = 0
+        self.moveCDReward: int = 0
+        self.hpReward: int = 0
+        self.scoreReward: int = 0
+        self.killReward: int = 0
+        self.distanceReward: float = 0
+        self.moveReward: int = 0
+        self.positionReward: int = 0
 
     def display(self):
 
@@ -115,11 +130,36 @@ class UI(object):
         for character in self._characters:
             print(f"characterState: {character}")
         print("\n")
+        obs = []
+        enemyScore: int = 0
         for x in range(self.mapSize):
             print(" " * (self.mapSize - x - 1) * 2, end="")
             for y in range(self.mapSize):
-                print(self._blocks[x][y].get_emoji(), end="  ")
+                emoji = self._blocks[x][y].get_emoji()
+                block = self._blocks[x][y]
+                if block.color != self.color and block.color != ColorType.White:
+                    enemyScore += 1
+                if len(emoji) == 1:
+                    obs.append(ord(emoji) // 1000)
+                else:
+                    obs.append(ord(emoji[0]) // 1000)
+                print(emoji, end="  ")
             print("\n")
+        self.enemyReward = self.enemyScore - enemyScore
+        self.enemyScore = enemyScore
+        
+        if self.env.ui_turn:
+            mutex.acquire()
+            self.env.obs = obs
+            self.distanceReward = -1 * self.twoPointDistance((self.characters[0].x, self.characters[0].y), (8, -8))
+            if self.characters[0].x >= 12 or self.characters[0].y <= -12:
+                self.positionReward = -50
+            self.env.reward = self.scoreReward + self.enemyReward + self.hpReward * 4 + self.moveCDReward * 4 + self.killReward * 10 + self.distanceReward * 4 + self.moveReward + self.positionReward
+            fileName='log_obs.txt'
+            with open(fileName, 'w+') as file:
+                print(f"reward = {self.env.reward}", file=file)
+            self.env.ui_turn = False
+            mutex.release()
 
     @property
     def playerID(self):
@@ -202,6 +242,9 @@ class UI(object):
     def kill(self, kill):
         if kill > 0:
             self._kill = kill
+
+    def twoPointDistance(self, point1: tuple, point2: tuple):
+        return math.sqrt(pow(point1[0] - point2[0], 2) + pow(point1[1] - point2[1], 2))
 
 
 if __name__ == "__main__":

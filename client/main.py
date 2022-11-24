@@ -5,6 +5,7 @@ from req import *
 from resp import *
 from config import config
 from ui import UI
+from ui import mutex
 import subprocess
 import logging
 import re
@@ -13,6 +14,12 @@ from itertools import cycle
 from time import sleep
 import sys
 from model import *
+from pg_agent import *
+from pg_model import *
+from environment import *
+import os
+
+LEARNING_RATE = 1e-3
 
 # logger config
 logging.basicConfig(
@@ -74,7 +81,6 @@ class Client(object):
             self.port = port
         assert self.host and self.port, "host and port must be provided"
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.model: Model = Model(1,2)
 
     def connect(self):
         if self.socket.connect_ex((self.host, self.port)) == 0:
@@ -104,7 +110,6 @@ class Client(object):
         # uncomment this will show resp packet
         # logger.info(f"recv PacketResp, content: {result}")
         packet = PacketResp().from_json(result)
-        self.model.input(packet)
         return packet
 
     def __enter__(self):
@@ -130,7 +135,7 @@ def cliGetInitReq():
 
 
 
-def cliGetActionReq(characterID: int, model):
+def cliGetActionReq(characterID: int, env: Environment):
     """Get action request from user input.
 
     Args:
@@ -159,7 +164,31 @@ def cliGetActionReq(characterID: int, model):
 
     actionReqs = []
 
-    actions = model.output()
+    time.sleep(0.1)
+    if env.ui_turn:
+        return
+    mutex.acquire()
+    # fileName='log_obs.txt'
+    # with open(fileName, 'a+') as file:
+    #     print("agent turn", file=file)
+    try:
+        if env.obs and env.ui.characters[0].isAlive:
+            env.action = env.agent.sample(env.obs)
+            actions = action_list[env.action]
+            done = env.step()
+            if done:
+                batch_obs = np.array(env.obs_list)
+                batch_action = np.array(env.action_list)
+                batch_reward = calc_reward_to_go(env.reward_list)
+                env.agent.learn(batch_obs, batch_action, batch_reward)
+                env.obs_list = []
+                env.action_list = []
+                env.reward_list = []
+        else:
+            return
+    finally:
+        env.ui_turn = True
+        mutex.release()
 
     for s in get_action(actions):
         actionReq = ActionReq(characterID, *str2action[s])
@@ -167,15 +196,23 @@ def cliGetActionReq(characterID: int, model):
 
     return actionReqs
 
-
 def refreshUI(ui: UI, packet: PacketResp):
     """Refresh the UI according to the response."""
     data = packet.data
     if packet.type == PacketType.ActionResp:
         ui.playerID = data.playerID
         ui.color = data.color
+        if len(ui.characters) > 0:
+            if ui.characters[0].x == data.characters[0].x and ui.characters[0].y == data.characters[0].y:
+                ui.moveReward = -5
+            else:
+                ui.moveReward = 5
+            ui.moveCDReward = ui.characters[0].moveCD - data.characters[0].moveCD
+            ui.hpReward = ui.characters[0].hp - data.characters[0].hp
         ui.characters = data.characters
+        ui.scoreReward = data.score - ui.score
         ui.score = data.score
+        ui.killReward = data.kill - ui.kill
         ui.kill = data.kill
         gContext['kill'] = data.kill
 
@@ -243,11 +280,29 @@ def recvAndRefresh(ui: UI, client: Client):
     gContext["gameOverFlag"] = True
     print("Press any key to exit......")
 
+modelPath = "./pgmodel6.ckpt"
+action_list = ["wsjk", "dsjk", "esjk", "xsjk", "zsjk", "asjk"]
+action_cnt = len(action_list)
 
 def main(port=None):
     ui = UI()
+    env = Environment()
+    env.ui: UI = ui
+    env.modelPath = modelPath
+    ui.env: Environment = env
+    obs_dim = 16*16
+    act_dim = action_cnt
+    logger.info('obs_dim {}, act_dim {}'.format(obs_dim, act_dim))
+    # build an agent
+    model = PGModel(obs_dim=obs_dim, act_dim=act_dim)
+    alg = parl.algorithms.PolicyGradient(model, lr=LEARNING_RATE)
+    agent = PGAgent(alg)
+    if os.path.exists(modelPath):
+        agent.restore(modelPath)
+    env.agent = agent
 
     with Client(port) as client:
+        env.client: Client = client
         client.connect()
 
         initPacket = PacketReq(PacketType.InitReq, cliGetInitReq())
@@ -273,14 +328,20 @@ def main(port=None):
             if gContext["characterID"] is None:
                 continue
 
-            if action := cliGetActionReq(gContext["characterID"],client.model):
-
-                actionPacket = PacketReq(PacketType.ActionReq, action)
-                client.send(actionPacket)
+            if action := cliGetActionReq(gContext["characterID"], env):
+                if action:
+                    actionPacket = PacketReq(PacketType.ActionReq, action)
+                    client.send(actionPacket)
 
         # gracefully shutdown
         t.join()
+        agent.save(modelPath)
 
+def calc_reward_to_go(reward_list, gamma=1.0):
+    for i in range(len(reward_list) - 2, -1, -1):
+        # G_i = r_i + γ·G_i+1
+        reward_list[i] += gamma * reward_list[i + 1]  # Gt
+    return np.array(reward_list)
 
 if __name__ == "__main__":
     initGlobalContext()

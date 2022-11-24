@@ -179,7 +179,7 @@ class Model(object):
         #record
         
         fileName='log_opearator.txt'
-        with open(fileName, 'a+') as file:
+        with open(fileName, 'w+') as file:
             print('frame:{}'.format(frame), file=file)
             print('operations is {}'.format(st), dir_score, file=file)
             t = time.time()
@@ -200,7 +200,7 @@ class Model(object):
         self.color: int = actionResp.characters[0].color
 
         #save to file 
-        with open(fileName, 'a+')as file:
+        with open(fileName, 'w+')as file:
             print("resp = ", resp, file=file)
 
     def isInMasterWeaponCD(self):
