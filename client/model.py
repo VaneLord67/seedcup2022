@@ -1,8 +1,8 @@
 from resp import *
 from base import *
+from main import gContext
 import time 
 
-whitelandColor: int = 0
 point = {
     "wall":-1,
     "othersland":2,
@@ -155,19 +155,22 @@ class Model(object):
         self.t = time.time()
 
         self.color: int = 0
-        self.playerID: int = 0
+        self.playerID: int = gContext['playerID']
         self.dirs: list(tuple(int, int)) = [(-1,1),(0,1),(1,0),(1,-1),(0,-1),(-1,0)]
     def output(self):
         time.sleep(0.1)
         if not self.isAlive():
             return ""
         frame = self.resp.frame
-        dir_score = get_dir_score(map = self.map ,c = self.character[0],weapon=2)
-        tool_score = get_tool_score(map = self.map ,c = self.character[0])
-        st = direction(dir_score,tool_score)
+        st = ""
+        dir_score = []
+        if not self.isInMoveCD():
+            dir_score = get_dir_score(map = self.map ,c = self.character[0],weapon=2)
+            tool_score = get_tool_score(map = self.map ,c = self.character[0])
+            st = direction(dir_score,tool_score)
+            st += 's'
         if not self.isInMasterWeaponCD():
-            if not self.isInMoveCD(): 
-                st += 'sj'
+                st += 'j'
         if not self.isInSlaveWeaponCD():
             st += self.getKiwifruitAttackDirStr()
             st += 'k'
@@ -194,7 +197,7 @@ class Model(object):
         self.character = actionResp.characters
         self.map = actionResp.map
         self.color: int = actionResp.characters[0].color
-        self.playerID: int = actionResp.playerID
+
         #save to file 
         with open(fileName, 'a+')as file:
             print("resp = ", resp, file=file)
@@ -246,7 +249,7 @@ class Model(object):
         score: int = 0
         if block == None or block.valid == False:
             score += point['wall']
-        elif block.color == whitelandColor:
+        elif block.color == ColorType.White:
             score += point['whiteland']
         elif block.color != self.color:
             score += point['othersland']
