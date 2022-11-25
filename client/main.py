@@ -13,6 +13,7 @@ from itertools import cycle
 from time import sleep
 import sys
 from model import *
+from train import *
 
 # logger config
 logging.basicConfig(
@@ -24,30 +25,36 @@ logging.basicConfig(
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
-# record the context of global data
-gContext = {
-    "playerID": None,
-    "characterID": [],
-    "gameOverFlag": False,
-    "prompt": (
-        "Take actions!\n"
-        "'s': move in current direction\n"
-        "'w': turn up\n"
-        "'e': turn up right\n"
-        "'d': turn down right\n"
-        "'x': turn down\n"
-        "'z': turn down left\n"
-        "'a': turn up left\n"
-        "'u': sneak\n"
-        "'i': unsneak\n"
-        "'j': master weapon attack\n"
-        "'k': slave weapon attack\n"
-        "Please complete all actions within one frame! \n"
-        "[example]: a12sdq2\n"
-    ),
-    "steps": ["⢿", "⣻", "⣽", "⣾", "⣷", "⣯", "⣟", "⡿"],
-    "gameBeginFlag": False,
-}
+result = []
+resultScore = []
+gContext: dict[str, Any]
+
+def initGlobalContext():
+    # record the context of global data
+    global gContext
+    gContext = {
+        "playerID": None,
+        "characterID": [],
+        "gameOverFlag": False,
+        "prompt": (
+            "Take actions!\n"
+            "'s': move in current direction\n"
+            "'w': turn up\n"
+            "'e': turn up right\n"
+            "'d': turn down right\n"
+            "'x': turn down\n"
+            "'z': turn down left\n"
+            "'a': turn up left\n"
+            "'u': sneak\n"
+            "'i': unsneak\n"
+            "'j': master weapon attack\n"
+            "'k': slave weapon attack\n"
+            "Please complete all actions within one frame! \n"
+            "[example]: a12sdq2\n"
+        ),
+        "steps": ["⢿", "⣻", "⣽", "⣾", "⣷", "⣯", "⣟", "⡿"],
+        "gameBeginFlag": False,
+    }
 
 
 class Client(object):
@@ -58,13 +65,13 @@ class Client(object):
         >>>     client.connect()     # connect to remote
         >>> 
     """
-    def __init__(self) -> None:
+    def __init__(self, port: int) -> None:
         self.config = config
         self.host = self.config.get("Host")
-        self.port = self.config.get("Port")
+        self.port = port
         assert self.host and self.port, "host and port must be provided"
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.model = Model(1,2)
+        self.model: Model = Model(1,2)
 
     def connect(self):
         if self.socket.connect_ex((self.host, self.port)) == 0:
@@ -200,6 +207,7 @@ def recvAndRefresh(ui: UI, client: Client):
         if len(resp.data.characters) and not gContext["gameBeginFlag"]:
             gContext["characterID"] = resp.data.characters[-1].characterID
             gContext["playerID"] = resp.data.playerID
+            client.model.playerID = gContext['playerID']
             gContext["gameBeginFlag"] = True
 
     while resp.type != PacketType.GameOver:
@@ -211,15 +219,19 @@ def recvAndRefresh(ui: UI, client: Client):
 
     for (idx, score) in enumerate(resp.data.scores):
         if gContext["playerID"] == idx:
+            resultScore.append(score)
             print(f"You've got \33[1m{score} score\33[0m")
         else:
             print(f"The other player has got \33[1m{score} score \33[0m")
 
     if resp.data.result == ResultType.Win:
         print("\33[1mCongratulations! You win! \33[0m")
+        result.append("win")
     elif resp.data.result == ResultType.Tie:
         print("\33[1mEvenly matched opponent \33[0m")
+        result.append("tie")
     elif resp.data.result == ResultType.Lose:
+        result.append("lose")
         print(
             "\33[1mThe goddess of victory is not on your side this time, but there is still a chance next time!\33[0m"
         )
@@ -228,10 +240,10 @@ def recvAndRefresh(ui: UI, client: Client):
     print("Press any key to exit......")
 
 
-def main():
+def main(port: int):
     ui = UI()
 
-    with Client() as client:
+    with Client(port) as client:
         client.connect()
 
         initPacket = PacketReq(PacketType.InitReq, cliGetInitReq())
@@ -267,4 +279,14 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    epoch = 3
+    for i in range(0, epoch):
+        initGlobalContext()
+        seedcupServerThread, ok, port = runServerAndBot()
+        if not ok:
+            print("run server failed")
+            continue
+        time.sleep(1)
+        main(port)
+    print("result = ", result)
+    print("resultScore = ", resultScore)
