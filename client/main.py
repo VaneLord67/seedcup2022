@@ -110,8 +110,10 @@ class Client(object):
 
 def cliGetInitReq():
     """Get init request from user input."""
-    masterWeaponType = input("Make choices!\nmaster weapon type: [select from {1-2}]: ")
-    slaveWeaponType = input("slave weapon type: [select from {1-2}]: ")
+    #masterWeaponType = input("Make choices!\nmaster weapon type: [select from {1-2}]: ")
+    #slaveWeaponType = input("slave weapon type: [select from {1-2}]: ")
+    masterWeaponType = '2'
+    slaveWeaponType = '1'
     return InitReq(
         MasterWeaponType(int(masterWeaponType)), SlaveWeaponType(int(slaveWeaponType))
     )

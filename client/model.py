@@ -4,7 +4,7 @@ import time
 
 whitelandColor: int = 0
 point = {
-    "wall":-1,
+    "wall":-3,
     "othersland":2,
     "whiteland":1,
     "faster":5,
@@ -148,8 +148,8 @@ def get_tool_score(map,c):
                 t += point['othersland']
             glb = add_score_to_dir(tool_score,[(block.x,block.y,d)],pos,t)
             glb = [i//50 for i in glb]
-    alpha = movecd #cd越大越需要faster
-    beta = 10-hp//10 #hp越低越需要blood
+    alpha = movecd*20 #cd越大越需要faster
+    beta = 100-hp #hp越低越需要blood
     tool_score = add_score_to_dir(glb,faster,pos,alpha)
     tool_score = add_score_to_dir(tool_score,blood,pos,beta)
     #tool_score = add_score_to_dir(tool_score,enemy,pos,point['enemy'])
