@@ -3,6 +3,7 @@ import subprocess
 import json
 from threading import Thread
 import time
+from main import *
 
 def isPortAvailable(port: int) -> bool:
     '''判断端口是否可用'''
@@ -11,9 +12,6 @@ def isPortAvailable(port: int) -> bool:
     sock.close()
     # result == 0代表端口没有被占用 result !=0 代表端口被占用
     return result == 0
-
-def main():
-    pass
 
 def runSeedcupServer():
     subprocess.getoutput("./seedcupServer")
@@ -31,7 +29,7 @@ def runServerAndBot():
         print("change port to", port)
         changeConfigPort(port)
     seedcupServerThread = Thread(target=runSeedcupServer)
-    seedcupServerThread.setDaemon(True)
+    seedcupServerThread.daemon = True
     seedcupServerThread.start()
     ok = isPortAvailable(port)
     if not ok:
@@ -41,7 +39,7 @@ def runServerAndBot():
         return None, False, port
     time.sleep(1)
     botThread = Thread(target=runBot)
-    botThread.setDaemon(True)
+    botThread.daemon = True
     botThread.start()
     return seedcupServerThread, True, port
 
@@ -59,4 +57,14 @@ def changeConfigPort(port: int):
         json.dump(params, indent = 4, fp=f)
 
 if __name__ == '__main__':
-    runServerAndBot()
+    epoch = 10
+    for i in range(0, epoch):
+        initGlobalContext()
+        seedcupServerThread, ok, port = runServerAndBot()
+        if not ok:
+            print("run server failed")
+            continue
+        time.sleep(1)
+        main(port)
+    print("result = ", result)
+    print("resultScore = ", resultScore)

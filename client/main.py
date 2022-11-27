@@ -13,7 +13,6 @@ from itertools import cycle
 from time import sleep
 import sys
 from model import *
-from train import *
 
 # logger config
 logging.basicConfig(
@@ -66,10 +65,13 @@ class Client(object):
         >>>     client.connect()     # connect to remote
         >>> 
     """
-    def __init__(self, port: int) -> None:
+    def __init__(self, port) -> None:
         self.config = config
         self.host = self.config.get("Host")
-        self.port = port
+        if port == None:
+            self.port = self.config.get("Port")
+        else:
+            self.port = port
         assert self.host and self.port, "host and port must be provided"
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.model: Model = Model(1,2)
@@ -242,7 +244,7 @@ def recvAndRefresh(ui: UI, client: Client):
     print("Press any key to exit......")
 
 
-def main(port: int):
+def main(port=None):
     ui = UI()
 
     with Client(port) as client:
@@ -281,14 +283,5 @@ def main(port: int):
 
 
 if __name__ == "__main__":
-    epoch = 3
-    for i in range(0, epoch):
-        initGlobalContext()
-        seedcupServerThread, ok, port = runServerAndBot()
-        if not ok:
-            print("run server failed")
-            continue
-        time.sleep(1)
-        main(port)
-    print("result = ", result)
-    print("resultScore = ", resultScore)
+    initGlobalContext()
+    main()
