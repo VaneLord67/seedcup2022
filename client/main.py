@@ -54,6 +54,7 @@ def initGlobalContext():
         ),
         "steps": ["⢿", "⣻", "⣽", "⣾", "⣷", "⣯", "⣟", "⡿"],
         "gameBeginFlag": False,
+        "kill": 0,
     }
 
 
@@ -174,6 +175,7 @@ def refreshUI(ui: UI, packet: PacketResp):
         ui.characters = data.characters
         ui.score = data.score
         ui.kill = data.kill
+        gContext['kill'] = data.kill
 
         for block in data.map.blocks:
             if len(block.objs):
@@ -219,7 +221,7 @@ def recvAndRefresh(ui: UI, client: Client):
 
     for (idx, score) in enumerate(resp.data.scores):
         if gContext["playerID"] == idx:
-            resultScore.append(score)
+            resultScore.append(score + gContext['kill'] * 10)
             print(f"You've got \33[1m{score} score\33[0m")
         else:
             print(f"The other player has got \33[1m{score} score \33[0m")
