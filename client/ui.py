@@ -111,15 +111,8 @@ class UI(object):
         self._score = score
         self._kill = kill
         self.env: Environment
-        self.scoreReward: int = 0
         self.enemyScore: int = 0
-        self.moveCDReward: int = 0
-        self.hpReward: int = 0
-        self.scoreReward: int = 0
-        self.killReward: int = 0
-        self.distanceReward: float = 0
-        self.moveReward: int = 0
-        self.positionReward: int = 0
+        self.actionResp: ActionResp
 
     def display(self):
 
@@ -145,20 +138,37 @@ class UI(object):
                     obs.append(ord(emoji[0]) // 1000)
                 print(emoji, end="  ")
             print("\n")
-        self.enemyReward = self.enemyScore - enemyScore
+        print(f"reward = {self.env.reward}")
         self.enemyScore = enemyScore
         
         if self.env.ui_turn:
             mutex.acquire()
-            self.env.obs = obs
-            self.distanceReward = -1 * self.twoPointDistance((self.characters[0].x, self.characters[0].y), (8, -8))
-            if self.characters[0].x >= 12 or self.characters[0].y <= -12:
-                self.positionReward = -50
-            self.env.reward = self.scoreReward + self.enemyReward + self.hpReward * 4 + self.moveCDReward * 4 + self.killReward * 10 + self.distanceReward * 4 + self.moveReward + self.positionReward
-            fileName='log_obs.txt'
-            with open(fileName, 'w+') as file:
-                print(f"reward = {self.env.reward}", file=file)
-            self.env.ui_turn = False
+            env = self.env
+            env.obs = obs
+
+            env.enemyReward: int = env.enemyScore - self.enemyScore
+            env.enemyScore: int = self.enemyScore
+            distance = self.twoPointDistance((self.characters[0].x, self.characters[0].y), (8, -8))
+            env.distanceReward = env.distance - distance
+            env.distance = distance
+            if env.actionResp == None:
+                env.actionResp = self.actionResp
+            if self.characters[0].x == env.actionResp.characters[0].x and self.characters[0].y == env.actionResp.characters[0].y:
+                env.moveReward = -50
+            else:
+                env.moveReward = 50
+            env.moveCDReward = self.characters[0].moveCD - env.actionResp.characters[0].moveCD
+            env.hpReward = env.actionResp.characters[0].hp - self.characters[0].hp
+            env.scoreReward = self.score - env.actionResp.score
+            env.killReward = self.kill - env.actionResp.kill
+
+            env.reward = env.scoreReward * 4 + env.hpReward * 10 + env.moveCDReward * 10 + env.killReward * 50 + env.distanceReward * 2
+
+            env.actionResp = self.actionResp
+            # fileName='log_reward.txt'
+            # with open(fileName, 'w+') as file:
+            #     print(f"reward = {env.reward}", file=file)
+            env.ui_turn = False
             mutex.release()
 
     @property

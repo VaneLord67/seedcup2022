@@ -25,8 +25,9 @@ class PGAgent(parl.Agent):
 
     """
 
-    def __init__(self, algorithm):
+    def __init__(self, algorithm, act_dim: int):
         super(PGAgent, self).__init__(algorithm)
+        self.act_dim: int = act_dim
 
     def sample(self, obs) -> int:
         """Sample an action when given an observation
@@ -37,6 +38,11 @@ class PGAgent(parl.Agent):
         Returns:
             act(int): action
         """
+        sample = np.random.random()
+        if sample < 0.2:
+            act = np.random.randint(self.act_dim)
+            return act
+        
         obs = paddle.to_tensor(obs, dtype='float32')
         # fileName='log_obs.txt'
         # with open(fileName, 'a+') as file:

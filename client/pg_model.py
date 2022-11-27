@@ -28,10 +28,12 @@ class PGModel(parl.Model):
 
     def __init__(self, obs_dim, act_dim):
         super(PGModel, self).__init__()
-        hid1_size = act_dim * 10
+        # hid1_size = act_dim * 10
+        hid1_size = 128
+        hid2_size = 128
         self.fc1 = nn.Linear(obs_dim, hid1_size)
-        self.middle = nn.Linear(hid1_size, 20)
-        self.fc2 = nn.Linear(20, act_dim)
+        self.middle = nn.Linear(hid1_size, hid2_size)
+        self.fc2 = nn.Linear(hid2_size, act_dim)
 
     def forward(self, x):
         out = paddle.tanh(self.fc1(x))

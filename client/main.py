@@ -19,7 +19,7 @@ from pg_model import *
 from environment import *
 import os
 
-LEARNING_RATE = 1e-3
+LEARNING_RATE = 1e-2
 
 # logger config
 logging.basicConfig(
@@ -175,6 +175,7 @@ def cliGetActionReq(characterID: int, env: Environment):
         if env.obs and env.ui.characters[0].isAlive:
             env.action = env.agent.sample(env.obs)
             actions = action_list[env.action]
+            print(f'actions = {actions}')
             done = env.step()
             if done:
                 batch_obs = np.array(env.obs_list)
@@ -200,19 +201,11 @@ def refreshUI(ui: UI, packet: PacketResp):
     """Refresh the UI according to the response."""
     data = packet.data
     if packet.type == PacketType.ActionResp:
+        ui.actionResp: ActionResp = data
         ui.playerID = data.playerID
         ui.color = data.color
-        if len(ui.characters) > 0:
-            if ui.characters[0].x == data.characters[0].x and ui.characters[0].y == data.characters[0].y:
-                ui.moveReward = -5
-            else:
-                ui.moveReward = 5
-            ui.moveCDReward = ui.characters[0].moveCD - data.characters[0].moveCD
-            ui.hpReward = ui.characters[0].hp - data.characters[0].hp
         ui.characters = data.characters
-        ui.scoreReward = data.score - ui.score
         ui.score = data.score
-        ui.killReward = data.kill - ui.kill
         ui.kill = data.kill
         gContext['kill'] = data.kill
 
@@ -280,8 +273,8 @@ def recvAndRefresh(ui: UI, client: Client):
     gContext["gameOverFlag"] = True
     print("Press any key to exit......")
 
-modelPath = "./pgmodel6.ckpt"
-action_list = ["wsjk", "dsjk", "esjk", "xsjk", "zsjk", "asjk"]
+modelPath = "./pgmodel8.ckpt"
+action_list = ["esjk", "wsjk", "dsjk", "xsjk", "zsjk", "asjk"]
 action_cnt = len(action_list)
 
 def main(port=None):
@@ -296,7 +289,7 @@ def main(port=None):
     # build an agent
     model = PGModel(obs_dim=obs_dim, act_dim=act_dim)
     alg = parl.algorithms.PolicyGradient(model, lr=LEARNING_RATE)
-    agent = PGAgent(alg)
+    agent = PGAgent(alg, act_dim)
     if os.path.exists(modelPath):
         agent.restore(modelPath)
     env.agent = agent
