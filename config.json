@@ -32,7 +32,16 @@
     "ViewRadius": 4,
     "PlayerNumber": 2,
     "CharacterNumber": 1,
-    "PlayerBornPosition": [[7, -1], [1, -7]],
+    "PlayerBornPosition": [
+        [
+            7,
+            -1
+        ],
+        [
+            1,
+            -7
+        ]
+    ],
     "GameMaxFrame": 600,
     "GameMaxAction": 30,
     "RandomSeed": 114
