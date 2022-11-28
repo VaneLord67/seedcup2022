@@ -12,8 +12,8 @@ from threading import Thread
 from itertools import cycle
 from time import sleep
 import sys
-from model import *
-
+#from model import *
+from model2 import Model
 # logger config
 logging.basicConfig(
     # uncomment this will redirect log to file *client.log*
@@ -74,7 +74,7 @@ class Client(object):
             self.port = port
         assert self.host and self.port, "host and port must be provided"
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.model: Model = Model(1,2)
+        self.model: Model = Model()
 
     def connect(self):
         if self.socket.connect_ex((self.host, self.port)) == 0:
@@ -212,7 +212,7 @@ def recvAndRefresh(ui: UI, client: Client):
         if len(resp.data.characters) and not gContext["gameBeginFlag"]:
             gContext["characterID"] = resp.data.characters[-1].characterID
             gContext["playerID"] = resp.data.playerID
-            client.model.playerID = gContext['playerID']
+            #client.model.playerID = gContext['playerID']
             gContext["gameBeginFlag"] = True
 
     while resp.type != PacketType.GameOver:
@@ -281,6 +281,7 @@ def main(port=None):
 
         # gracefully shutdown
         t.join()
+        client.model.learn()
 
 
 if __name__ == "__main__":

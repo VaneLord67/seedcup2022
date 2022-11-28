@@ -41,6 +41,7 @@ class PGAgent(parl.Agent):
         #     return act
         
         obs = paddle.to_tensor(obs, dtype='float32')
+        obs = obs.flatten()
         # fileName='log_obs.txt'
         # with open(fileName, 'a+') as file:
         #     print(f'{obs}', file=file)
@@ -58,6 +59,7 @@ class PGAgent(parl.Agent):
             act(int): action
         """
         obs = paddle.to_tensor(obs, dtype='float32')
+        obs = obs.flatten()
         prob = self.alg.predict(obs)
         act = int(prob.argmax())
         return act
@@ -76,6 +78,7 @@ class PGAgent(parl.Agent):
         reward = np.expand_dims(reward, axis=-1)
 
         obs = paddle.to_tensor(obs, dtype='float32')
+        obs = obs.reshape((len(obs),-1))
         act = paddle.to_tensor(act, dtype='int32')
         reward = paddle.to_tensor(reward, dtype='float32')
 

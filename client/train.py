@@ -5,6 +5,7 @@ from threading import Thread
 import time
 from main import *
 
+
 def isPortAvailable(port: int) -> bool:
     '''判断端口是否可用'''
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -56,7 +57,8 @@ def changeConfigPort(port: int):
     with open('./config.json', 'w') as f:
         json.dump(params, indent = 4, fp=f)
 
-if __name__ == '__main__':
+
+def model_train():
     epoch = 10
     for i in range(0, epoch):
         initGlobalContext()
@@ -68,3 +70,17 @@ if __name__ == '__main__':
         main(port)
     print("result = ", result)
     print("resultScore = ", resultScore)
+
+if __name__ == '__main__':
+    # epoch = 10
+    # for i in range(0, epoch):
+    #     initGlobalContext()
+    #     seedcupServerThread, ok, port = runServerAndBot()
+    #     if not ok:
+    #         print("run server failed")
+    #         continue
+    #     time.sleep(1)
+    #     main(port)
+    # print("result = ", result)
+    # print("resultScore = ", resultScore)
+    model_train()

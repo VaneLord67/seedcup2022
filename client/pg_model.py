@@ -16,6 +16,7 @@ import paddle
 import paddle.nn as nn
 import paddle.nn.functional as F
 import parl
+ 
 
 
 class PGModel(parl.Model):
@@ -40,3 +41,4 @@ class PGModel(parl.Model):
         middle = F.tanh(self.middle(out))
         prob = F.softmax(self.fc2(middle), axis=-1)
         return prob
+

@@ -1,6 +1,6 @@
 {
     "Host": "0.0.0.0",
-    "Port": 9999,
+    "Port": 9995,
     "MapSize": 16,
     "LoggerName": "seedcup2022",
     "LogDir": "log",
@@ -42,7 +42,7 @@
             -7
         ]
     ],
-    "GameMaxFrame": 600,
+    "GameMaxFrame": 100,
     "GameMaxAction": 30,
     "RandomSeed": 114
 }
