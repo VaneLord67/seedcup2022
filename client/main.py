@@ -150,6 +150,7 @@ def cliGetActionReq(characterID: int, model):
     actionReqs = []
 
     actions = model.output()
+    #actions = ''
 
     for s in get_action(actions):
         actionReq = ActionReq(characterID, *str2action[s])
