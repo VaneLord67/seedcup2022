@@ -26,7 +26,7 @@ logger.setLevel(logging.DEBUG)
 
 result = []
 resultScore = []
-gContext: dict[str, Any]
+# gContext: dict [str, Any]
 
 def initGlobalContext():
     # record the context of global data
