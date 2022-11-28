@@ -27,6 +27,7 @@ class Environment():
         self.enemyScore: int = 0
         self.enemyReward: int = 0
         self.distance: int = 0
+        self.illegalMoveReward: int = 0
 
     def reset(self):
         return np.array(self.obs)

@@ -8,6 +8,8 @@ import math
 
 mutex = threading.Lock()
 
+direction2DeltaPosition = [(-1,+1),(-1,0),(0,-1),(+1,-1),(+1,0),(0,+1)]
+
 color2emoji = {
     ColorType.White: Emoji.WhiteBrick,
     ColorType.Red: Emoji.RedBrick,
@@ -153,16 +155,23 @@ class UI(object):
             env.distance = distance
             if env.actionResp == None:
                 env.actionResp = self.actionResp
-            if self.characters[0].x == env.actionResp.characters[0].x and self.characters[0].y == env.actionResp.characters[0].y:
-                env.moveReward = -50
+            # if self.characters[0].x == env.actionResp.characters[0].x and self.characters[0].y == env.actionResp.characters[0].y:
+            #     env.moveReward = -50
+            # else:
+            #     env.moveReward = 50
+            deltaPosition: tuple = direction2DeltaPosition[self.characters[0].direction]
+            targetBlockPositionX = self.characters[0].x + deltaPosition[0] 
+            targetBlockPositionY = self.characters[0].y + deltaPosition[1]
+            if targetBlockPositionX < 0 or targetBlockPositionY > 0 or self._blocks[targetBlockPositionX][-targetBlockPositionY].valid == False:
+                env.illegalMoveReward = -100
             else:
-                env.moveReward = 50
+                env.illegalMoveReward = 0
             env.moveCDReward = self.characters[0].moveCD - env.actionResp.characters[0].moveCD
             env.hpReward = env.actionResp.characters[0].hp - self.characters[0].hp
             env.scoreReward = self.score - env.actionResp.score
             env.killReward = self.kill - env.actionResp.kill
 
-            env.reward = env.scoreReward * 4 + env.hpReward * 10 + env.moveCDReward * 10 + env.killReward * 50 + env.distanceReward * 2
+            env.reward = env.scoreReward * 4 + env.hpReward * 10 + env.moveCDReward * 10 + env.killReward * 50 + env.distanceReward * 2 + env.illegalMoveReward
 
             env.actionResp = self.actionResp
             # fileName='log_reward.txt'

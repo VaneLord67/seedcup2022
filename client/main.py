@@ -273,7 +273,7 @@ def recvAndRefresh(ui: UI, client: Client):
     gContext["gameOverFlag"] = True
     print("Press any key to exit......")
 
-modelPath = "./pgmodel8.ckpt"
+modelPath = "./model.ckpt"
 action_list = ["esjk", "wsjk", "dsjk", "xsjk", "zsjk", "asjk"]
 action_cnt = len(action_list)
 
