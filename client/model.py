@@ -197,11 +197,11 @@ class Model(object):
         
         
         with open(self.opfileName, 'a+') as file:
-            print('frame:{}'.format(frame), file=file)
-            print('operations is {}'.format(st), file=file)
-            t = time.time()
-            print('model cost {%.3f} s'%(t-self.t),file=file)
-            self.t = t
+            #print('frame:{}'.format(frame), file=file)
+            print('{}'.format(st), file=file)
+            #t = time.time()
+            #print('model cost {%.3f} s'%(t-self.t),file=file)
+            #self.t = t
         return st
 
     def input(self, resp: PacketResp):
