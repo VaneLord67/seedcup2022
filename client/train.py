@@ -56,15 +56,17 @@ def changeConfigPort(port: int):
     with open('./config.json', 'w') as f:
         json.dump(params, indent = 4, fp=f)
 
+def oneTrain():
+    seedcupServerThread, ok, port = runServerAndBot()
+    if not ok:
+        print("run server failed")
+        return
+    time.sleep(1)
+    main(port)
+
 if __name__ == '__main__':
-    epoch = 10
+    epoch = 3
     for i in range(0, epoch):
-        initGlobalContext()
-        seedcupServerThread, ok, port = runServerAndBot()
-        if not ok:
-            print("run server failed")
-            continue
-        time.sleep(1)
-        main(port)
+        oneTrain()
     print("result = ", result)
     print("resultScore = ", resultScore)

@@ -81,6 +81,7 @@ class Client(object):
             self.port = port
         assert self.host and self.port, "host and port must be provided"
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.model: PGModel
 
     def connect(self):
         if self.socket.connect_ex((self.host, self.port)) == 0:
@@ -278,6 +279,7 @@ action_list = ["esjk", "wsjk", "dsjk", "xsjk", "zsjk", "asjk"]
 action_cnt = len(action_list)
 
 def main(port=None):
+    initGlobalContext()
     ui = UI()
     env = Environment()
     env.ui: UI = ui
@@ -296,6 +298,7 @@ def main(port=None):
 
     with Client(port) as client:
         env.client: Client = client
+        client.model: PGModel = model
         client.connect()
 
         initPacket = PacketReq(PacketType.InitReq, cliGetInitReq())
@@ -337,5 +340,4 @@ def calc_reward_to_go(reward_list, gamma=1.0):
     return np.array(reward_list)
 
 if __name__ == "__main__":
-    initGlobalContext()
     main()

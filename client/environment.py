@@ -1,6 +1,7 @@
 import numpy as np
 from pg_agent import *
 from resp import *
+import subprocess
 
 class Environment():
     def __init__(self) -> None:
@@ -28,9 +29,12 @@ class Environment():
         self.enemyReward: int = 0
         self.distance: int = 0
         self.illegalMoveReward: int = 0
+    
+    def killServerAndBot(self):
+        subprocess.getoutput('''ps -ef |grep seedcupServer|grep -v grep|awk '{print $2}'|xargs kill -9''')
 
     def reset(self):
-        return np.array(self.obs)
+        self.killServerAndBot()
 
     def step(self):
         self.obs_list.append(self.obs)
