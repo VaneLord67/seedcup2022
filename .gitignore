@@ -8,3 +8,4 @@ main.spec
 bot*
 pgmodel*
 .*
+nohup.out
