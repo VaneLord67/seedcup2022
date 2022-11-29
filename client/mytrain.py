@@ -6,7 +6,7 @@ import parl
 import os
 import numpy as np
 from pg_model import PGModel
-
+import time
 
 
 
@@ -33,9 +33,7 @@ def get_act(fileName='log_opearator.txt'):
         return acts
 def run_train_episode(env, act, actionResp):
     obs = env.get_obs(actionResp)#通过返回的resp来观测
-    
     action = env.agent.sample(obs)
-    
     reward = env.get_reward(act, actionResp)
     #obs, reward, done, info = env.step(action)
     
@@ -49,12 +47,10 @@ def run_train_episode(env, act, actionResp):
 # evaluate 5 episodes
 def run_evaluate_episodes(env, act, actionResp):
     obs = env.get_obs(actionResp)#通过返回的resp来观测
-    
     action = env.agent.predict(obs)
     
     reward = env.get_reward(act, actionResp)
     #obs, reward, done, info = env.step(action)
-    
     env.act = act#上一次行动
     env.actionResp = actionResp#记录上一次的地图信息
     env.obs_list.append(obs)

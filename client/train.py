@@ -57,9 +57,11 @@ def changeConfigPort(port: int):
     with open('./config.json', 'w') as f:
         json.dump(params, indent = 4, fp=f)
 
+def killServerAndBot():
+    subprocess.getoutput('''ps -ef |grep seedcupServer|grep -v grep|awk '{print $2}'|xargs kill -9''')
 
 def model_train():
-    epoch = 10
+    epoch = 1
     for i in range(0, epoch):
         initGlobalContext()
         seedcupServerThread, ok, port = runServerAndBot()
@@ -70,6 +72,7 @@ def model_train():
         main(port,i)
         print("result = ", result)
         print("resultScore = ", resultScore)
+        killServerAndBot()
 
 if __name__ == '__main__':
     # epoch = 10

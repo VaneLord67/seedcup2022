@@ -8,7 +8,7 @@ from ui import UI
 import subprocess
 import logging
 import re
-from threading import Thread
+from threading import Thread, Condition
 from itertools import cycle
 from time import sleep
 import sys
@@ -157,18 +157,22 @@ def cliGetActionReq(characterID: int, model):
         "j": (ActionType.MasterWeaponAttack, EmptyActionParam()),
         "k": (ActionType.SlaveWeaponAttack, EmptyActionParam()),
     }
-
     actionReqs = []
 
-    actions = model.output()
-    #actions = ''
+    condition: Condition = model.condition
+    condition.acquire()
+    try:
+        condition.wait(timeout=1)
+        # print(f'action frame = {model.frame}')
+        actions = model.output()
+    finally:
+        condition.release()
 
     for s in get_action(actions):
         actionReq = ActionReq(characterID, *str2action[s])
         actionReqs.append(actionReq)
 
     return actionReqs
-
 
 def refreshUI(ui: UI, packet: PacketResp):
     """Refresh the UI according to the response."""
@@ -250,8 +254,8 @@ def main(port=None,epoch=0):
     ui = UI()
 
     with Client(port) as client:
-        client.connect()
         client.model.epoch = epoch
+        client.connect()
         initPacket = PacketReq(PacketType.InitReq, cliGetInitReq())
         client.send(initPacket)
         print(gContext["prompt"])
