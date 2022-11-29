@@ -10,10 +10,13 @@ from pg_model import PGModel
 
 
 
-def calc_reward_to_go(reward_list, gamma=1.0):
+def calc_reward_to_go(reward_list, gamma=0.8):
     for i in range(len(reward_list) - 2, -1, -1):
         # G_i = r_i + γ·G_i+1
-        reward_list[i] += gamma * reward_list[i + 1]  # Gt
+        reward_list[i] += gamma * reward_list[i + 1]# Gt
+        if reward_list[0]>0:
+            reward_list = [i*5 for i in reward_list]#胜利奖励分
+            
     return np.array(reward_list)
 
     
@@ -42,7 +45,7 @@ def run_train_episode(env, act, actionResp):
     env.action_list.append(action)
     env.reward_list.append(reward)
     return obs, action, reward
-    
+
 # evaluate 5 episodes
 def run_evaluate_episodes(env, act, actionResp):
     obs = env.get_obs(actionResp)#通过返回的resp来观测

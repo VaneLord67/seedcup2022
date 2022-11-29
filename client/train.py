@@ -68,8 +68,8 @@ def model_train():
             continue
         time.sleep(1)
         main(port,i)
-    print("result = ", result)
-    print("resultScore = ", resultScore)
+        print("result = ", result)
+        print("resultScore = ", resultScore)
 
 if __name__ == '__main__':
     # epoch = 10
