@@ -94,6 +94,7 @@ class Client(object):
 
     def recv(self):
         length = int.from_bytes(self.socket.recv(8), sys.byteorder)
+
         result = b''
         while resp := self.socket.recv(length):
             result += resp
@@ -245,12 +246,12 @@ def recvAndRefresh(ui: UI, client: Client):
     print("Press any key to exit......")
 
 
-def main(port=None):
+def main(port=None,epoch=0):
     ui = UI()
 
     with Client(port) as client:
         client.connect()
-
+        client.model.epoch = epoch
         initPacket = PacketReq(PacketType.InitReq, cliGetInitReq())
         client.send(initPacket)
         print(gContext["prompt"])
@@ -277,13 +278,15 @@ def main(port=None):
             if action := cliGetActionReq(gContext["characterID"],client.model):
 
                 actionPacket = PacketReq(PacketType.ActionReq, action)
-                client.send(actionPacket)
+                try:
+                    client.send(actionPacket)
+                except IOError:
+                    pass
 
         # gracefully shutdown
         t.join()
         client.model.learn()
 
-
 if __name__ == "__main__":
     initGlobalContext()
-    main()
+    main(epoch = 0)

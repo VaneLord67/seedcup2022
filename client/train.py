@@ -67,7 +67,7 @@ def model_train():
             print("run server failed")
             continue
         time.sleep(1)
-        main(port)
+        main(port,i)
     print("result = ", result)
     print("resultScore = ", resultScore)
 

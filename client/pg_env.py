@@ -109,10 +109,11 @@ class Enviroment():
                 di = direction2DeltaPosition[act]
                 targetBlockPositionX = actionResp.characters[0].x + di[0]
                 targetBlockPositionY = actionResp.characters[0].y + di[1]
-                if targetBlockPositionX < 0 or targetBlockPositionY > 0 or actionResp.map.blocks[targetBlockPositionX*10-targetBlockPositionY].valid == False:
-                    illegalMoveReward = -100
-                    
-
+                if (targetBlockPositionX < 0) or (targetBlockPositionY > 0) or (targetBlockPositionY < -15) or (targetBlockPositionX > 15) == True:
+                    illegalMoveReward = -50
+                if (targetBlockPositionX*16-targetBlockPositionY)<16*16:
+                    if actionResp.map.blocks[targetBlockPositionX*16-targetBlockPositionY].valid == False:
+                        illegalMoveReward = -100
 
             reward = scoreReward * 4 + hpReward * 10 + moveCDReward * 10 + killReward * 50 + illegalMoveReward
             return reward

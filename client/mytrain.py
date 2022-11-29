@@ -7,23 +7,7 @@ import os
 import numpy as np
 from pg_model import PGModel
 
-# evaluate 5 episodes
 
-# def run_evaluate_episodes(agent, eval_episodes=5, render=False):
-#     eval_reward = []
-#     for i in range(eval_episodes):
-#         obs = env.reset()
-#         episode_reward = 0
-#         while True:
-#             action = agent.predict(obs)
-#             obs, reward, isOver, _ = env.step(action)
-#             episode_reward += reward
-#             if render:
-#                 env.render()
-#             if isOver:
-#                 break
-#         eval_reward.append(episode_reward)
-#     return np.mean(eval_reward)
 
 
 def calc_reward_to_go(reward_list, gamma=1.0):
@@ -31,8 +15,6 @@ def calc_reward_to_go(reward_list, gamma=1.0):
         # G_i = r_i + γ·G_i+1
         reward_list[i] += gamma * reward_list[i + 1]  # Gt
     return np.array(reward_list)
-
-
 
     
 def getresp(fileName='log_player.txt'):
@@ -60,6 +42,22 @@ def run_train_episode(env, act, actionResp):
     env.action_list.append(action)
     env.reward_list.append(reward)
     return obs, action, reward
+    
+# evaluate 5 episodes
+def run_evaluate_episodes(env, act, actionResp):
+    obs = env.get_obs(actionResp)#通过返回的resp来观测
+    
+    action = env.agent.predict(obs)
+    
+    reward = env.get_reward(act, actionResp)
+    #obs, reward, done, info = env.step(action)
+    
+    env.act = act#上一次行动
+    env.actionResp = actionResp#记录上一次的地图信息
+    env.obs_list.append(obs)
+    env.action_list.append(action)
+    env.reward_list.append(reward)
+    return obs, action, reward
 def d_train():
     LEARNING_RATE = 0.001
     act_dim = 6
@@ -69,7 +67,7 @@ def d_train():
     alg = parl.algorithms.PolicyGradient(model, lr=LEARNING_RATE)
     agent = PGAgent(alg, act_dim)
     action = 0
-    frame = 500 #从FRAME 帧后开始接受包
+    frame = -1 #从FRAME 帧后开始接受包
     if os.path.exists(modelPath):
         agent.restore(modelPath)
     env.agent = agent
