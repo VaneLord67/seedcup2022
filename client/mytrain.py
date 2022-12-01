@@ -9,7 +9,6 @@ from pg_model import PGModel
 
 
 
-
 def calc_reward_to_go(reward_list, gamma=0.8):
     for i in range(len(reward_list) - 2, -1, -1):
         # G_i = r_i + γ·G_i+1
@@ -33,7 +32,6 @@ def get_act(fileName='log_opearator.txt'):
         return acts
 def run_train_episode(env, act, actionResp):
     obs = env.get_obs(actionResp)#通过返回的resp来观测
-    
     action = env.agent.sample(obs)
     
     reward = env.get_reward(act, actionResp)
@@ -49,7 +47,6 @@ def run_train_episode(env, act, actionResp):
 # evaluate 5 episodes
 def run_evaluate_episodes(env, act, actionResp):
     obs = env.get_obs(actionResp)#通过返回的resp来观测
-    
     action = env.agent.predict(obs)
     
     reward = env.get_reward(act, actionResp)

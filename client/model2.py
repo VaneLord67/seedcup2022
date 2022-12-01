@@ -7,19 +7,21 @@ from base import *
 import parl
 import os
 import time
+import threading
 
 class Model():
     def __init__(self):
+        self.condition: threading.Condition = threading.Condition() # 接收和发送线程间同步使用
         self.resp = None
-        self.frame = None
+        self.frame: int = -1
         self.epoch = None
         #self.playerID = None
         LEARNING_RATE = 0.001
         self.modelPath = './pgmodel1.ckpt'
         with open('log_action.txt', 'w')as file:
-            file.close()
+            pass # 不需要手动close. with open会自动管理
         with open('log_reward.txt', 'w')as file:
-            file.close()#清空缓存
+            pass
         act_dim = 6
         self.action = 0
         
@@ -31,15 +33,25 @@ class Model():
             self.agent.restore(self.modelPath)
         self.env.agent = self.agent
         self.env.obs_list, self.env.action_list, self.env.reward_list =[],[],[]
+
+        # warm up agent，加快游戏开始后的计算速度
+        obs = [0]*16*16
+        self.env.agent.predict(obs)
     def input(self, resp: PacketResp):
         if resp.type == PacketType.GameOver:
             return
         actionResp: ActionResp = resp.data
         self.resp = actionResp
+        if self.resp.frame > self.frame:
+            # self.actionFrame = self.frame
+            print(f'frame = {self.frame}')
+            self.condition.acquire()
+            self.condition.notify()
+            self.condition.release()
         self.frame = self.resp.frame
 
     def output(self):
-        time.sleep(0.15)
+        # time.sleep(0.1)
         if self.epoch%5 == 0:#evaluate
             obs, self.action, reward = run_evaluate_episodes(self.env,self.action,self.resp)
         else:
