@@ -12,8 +12,8 @@ from threading import Thread
 from itertools import cycle
 from time import sleep
 import sys
-from model import *
-
+#from model import *
+from model2 import Model
 # logger config
 logging.basicConfig(
     # uncomment this will redirect log to file *client.log*
@@ -26,7 +26,7 @@ logger.setLevel(logging.DEBUG)
 
 result = []
 resultScore = []
-gContext: dict[str, Any]
+# gContext: dict [str, Any]
 
 def initGlobalContext():
     # record the context of global data
@@ -74,7 +74,7 @@ class Client(object):
             self.port = port
         assert self.host and self.port, "host and port must be provided"
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.model: Model = Model(1,2)
+        self.model: Model = Model()
 
     def connect(self):
         if self.socket.connect_ex((self.host, self.port)) == 0:
@@ -94,6 +94,7 @@ class Client(object):
 
     def recv(self):
         length = int.from_bytes(self.socket.recv(8), sys.byteorder)
+
         result = b''
         while resp := self.socket.recv(length):
             result += resp
@@ -120,10 +121,10 @@ class Client(object):
 
 def cliGetInitReq():
     """Get init request from user input."""
-    # masterWeaponType = input("Make choices!\nmaster weapon type: [select from {1-2}]: ")
-    masterWeaponType = "2"
-    # slaveWeaponType = input("slave weapon type: [select from {1-2}]: ")
-    slaveWeaponType = "1"
+    #masterWeaponType = input("Make choices!\nmaster weapon type: [select from {1-2}]: ")
+    #slaveWeaponType = input("slave weapon type: [select from {1-2}]: ")
+    masterWeaponType = '2'
+    slaveWeaponType = '1'
     return InitReq(
         MasterWeaponType(int(masterWeaponType)), SlaveWeaponType(int(slaveWeaponType))
     )
@@ -160,6 +161,7 @@ def cliGetActionReq(characterID: int, model):
     actionReqs = []
 
     actions = model.output()
+    #actions = ''
 
     for s in get_action(actions):
         actionReq = ActionReq(characterID, *str2action[s])
@@ -211,7 +213,7 @@ def recvAndRefresh(ui: UI, client: Client):
         if len(resp.data.characters) and not gContext["gameBeginFlag"]:
             gContext["characterID"] = resp.data.characters[-1].characterID
             gContext["playerID"] = resp.data.playerID
-            client.model.playerID = gContext['playerID']
+            #client.model.playerID = gContext['playerID']
             gContext["gameBeginFlag"] = True
 
     while resp.type != PacketType.GameOver:
@@ -244,12 +246,12 @@ def recvAndRefresh(ui: UI, client: Client):
     print("Press any key to exit......")
 
 
-def main(port=None):
+def main(port=None,epoch=0):
     ui = UI()
 
     with Client(port) as client:
         client.connect()
-
+        client.model.epoch = epoch
         initPacket = PacketReq(PacketType.InitReq, cliGetInitReq())
         client.send(initPacket)
         print(gContext["prompt"])
@@ -276,12 +278,15 @@ def main(port=None):
             if action := cliGetActionReq(gContext["characterID"],client.model):
 
                 actionPacket = PacketReq(PacketType.ActionReq, action)
-                client.send(actionPacket)
+                try:
+                    client.send(actionPacket)
+                except IOError:
+                    pass
 
         # gracefully shutdown
         t.join()
-
+        client.model.learn()
 
 if __name__ == "__main__":
     initGlobalContext()
-    main()
+    main(epoch = 0)

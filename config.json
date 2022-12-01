@@ -42,7 +42,7 @@
             -7
         ]
     ],
-    "GameMaxFrame": 600,
+    "GameMaxFrame": 103,
     "GameMaxAction": 30,
     "RandomSeed": 114
 }

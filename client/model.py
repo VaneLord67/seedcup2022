@@ -3,7 +3,7 @@ from base import *
 import time 
 
 point = {
-    "wall":-1,
+    "wall":-3,
     "othersland":2,
     "whiteland":1,
     "faster":5,
@@ -110,10 +110,10 @@ def add_score_to_dir(score,tool,pos,a):
         if dx > 0 and dy==0:
             dir.append(5)
         for d in dir:
-            score[d] += (13 - i[2])*a#距离越远分数越低
+            score[d] += (13 - i[2])*a#距离越远分数越低*系数a
     return score
 def get_tool_score(map,c):
-    '''计算道具与人距离的分数，距离越近分数越大，人能往道具方向前进'''
+    '''计算道具，全局地块与人距离的分数，距离越近分数越大，人能往道具方向前进'''
     blocks = map.blocks
     pos = (c.x,c.y)
     hp = c.hp
@@ -121,10 +121,10 @@ def get_tool_score(map,c):
     tool_score = [0,0,0,0,0,0]
     blood = []
     faster = []
-    enemy = None
+    enemy = []
     for block in blocks:
+        d = distance(pos,(block.x,block.y))
         if len(block.objs)>0:
-            d = distance(pos,(block.x,block.y))
             if (block.objs[0].type-1):
                 #block上是道具
                 if (int(str(block.objs[0].status)[-2])-1):
@@ -132,20 +132,31 @@ def get_tool_score(map,c):
                     blood.append((block.x,block.y,d))
                 else:
                     faster.append((block.x,block.y,d))
-            else:
+            elif(block.objs[0].status.x,block.objs[0].status.y)!=pos:
                 #block上是人
-                if (block.objs[0].status.x,block.objs[0].status.y)!=pos:
-                    enemy = block.objs[0]
-    alpha = movecd #cd越大越需要faster
-    beta = 10-hp//10 #hp越低越需要blood
-    tool_score = add_score_to_dir(tool_score,faster,pos,alpha)
-
+                    enemy.append((block.x,block.y,d))
+                #block上什么都没有
+        else:
+            #block上啥也没有计算全局分数
+            t = 0
+            if block.valid == False:
+                t += point['wall']
+            elif block.color == 0:
+                t += point['whiteland']
+            elif block.color != c.color:
+                t += point['othersland']
+            glb = add_score_to_dir(tool_score,[(block.x,block.y,d)],pos,t)
+            glb = [i//50 for i in glb]
+    alpha = movecd*20 #cd越大越需要faster
+    beta = 100-hp #hp越低越需要blood
+    tool_score = add_score_to_dir(glb,faster,pos,alpha)
     tool_score = add_score_to_dir(tool_score,blood,pos,beta)
+    #tool_score = add_score_to_dir(tool_score,enemy,pos,point['enemy'])
     
     return tool_score
 
 class Model(object):
-    def __init__(self,id,weapon):
+    def __init__(self,id,weapon,debug = False):
         self.id = id
         self.weapon = weapon
         self.resp = None
@@ -153,6 +164,13 @@ class Model(object):
         self.map = None
         self.t = time.time()
 
+        self.opfileName='log_opearator.txt'
+        self.resfileName='log_player.txt'
+        with open(self.opfileName, 'w')as file:
+            file.close()
+        if not debug:#debug读出res里的内容，非debug写入内容
+            with open(self.resfileName, 'w')as file:
+                file.close()
         self.color: int = 0
         self.dirs: list(tuple(int, int)) = [(-1,1),(0,1),(1,0),(1,-1),(0,-1),(-1,0)]
         self.playerID: int
@@ -160,6 +178,7 @@ class Model(object):
         time.sleep(0.1)
         if not self.isAlive():
             return ""
+        st = ''
         frame = self.resp.frame
         st = ""
         dir_score = []
@@ -176,17 +195,17 @@ class Model(object):
         #time.sleep(0.1)
         #record
         
-        fileName='log_opearator.txt'
-        with open(fileName, 'a+') as file:
-            print('frame:{}'.format(frame), file=file)
-            print('operations is {}'.format(st), dir_score, file=file)
-            t = time.time()
-            print('model cost {%.3f} s'%(t-self.t),file=file)
-            self.t = t
+        
+        with open(self.opfileName, 'a+') as file:
+            #print('frame:{}'.format(frame), file=file)
+            print('{}'.format(st), file=file)
+            #t = time.time()
+            #print('model cost {%.3f} s'%(t-self.t),file=file)
+            #self.t = t
         return st
 
     def input(self, resp: PacketResp):
-        fileName='log_player.txt'
+        
         #self.character = resp['data']['characters']
         #self.map = resp['data']['map']
         if resp.type == PacketType.GameOver:
@@ -198,7 +217,7 @@ class Model(object):
         self.color: int = actionResp.characters[0].color
 
         #save to file 
-        with open(fileName, 'a+')as file:
+        with open(self.resfileName, 'a+')as file:
             print("resp = ", resp, file=file)
 
     def isInMasterWeaponCD(self):
@@ -275,13 +294,13 @@ if __name__ == "__main__":
             matches = allres.split("resp = ")[1:]
             for match in matches:
                 yield match.strip()
-    model = Model(1,2)
+    model = Model(1,2,debug=True)
     frame = -1 #从FRAME 帧后开始接受包
     for f,s in enumerate(getresp()):
         if f<=frame:
             continue
         packetResp = PacketResp()
-        actionResp = packetResp.from_json(s).data
+        actionResp = packetResp.from_json(s).data 
         model.resp = actionResp
         model.character = actionResp.characters
         model.map = actionResp.map
