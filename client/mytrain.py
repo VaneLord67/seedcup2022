@@ -6,8 +6,10 @@ import parl
 import os
 import numpy as np
 from pg_model import PGModel
+import subprocess
 
-
+def killServerAndBot():
+    subprocess.getoutput('''ps -ef |grep seedcupServer|grep -v grep|awk '{print $2}'|xargs kill -9''')
 
 def calc_reward_to_go(reward_list, gamma=0.8):
     for i in range(len(reward_list) - 2, -1, -1):

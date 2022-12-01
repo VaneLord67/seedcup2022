@@ -1,12 +1,11 @@
 from pg_model import PGModel
 from pg_env import Enviroment
 from pg_agent import PGAgent
-from mytrain import run_train_episode,calc_reward_to_go,run_evaluate_episodes
+from mytrain import run_train_episode,calc_reward_to_go,run_evaluate_episodes, killServerAndBot
 from resp import *
 from base import *
 import parl
 import os
-import time
 import threading
 
 class Model():
@@ -17,6 +16,7 @@ class Model():
         self.epoch = None
         #self.playerID = None
         LEARNING_RATE = 0.001
+        self.EarlyStopThreshold: int = -100
         self.modelPath = './pgmodel1.ckpt'
         with open('log_action.txt', 'w')as file:
             pass # 不需要手动close. with open会自动管理
@@ -44,7 +44,7 @@ class Model():
         self.resp = actionResp
         if self.resp.frame > self.frame:
             # self.actionFrame = self.frame
-            print(f'frame = {self.frame}')
+            # print(f'frame = {self.frame}')
             self.condition.acquire()
             self.condition.notify()
             self.condition.release()
@@ -61,6 +61,9 @@ class Model():
             print(a, file=file)
         with open('log_reward.txt', 'a+')as file:
             print(reward, file=file)
+        if reward <= self.EarlyStopThreshold:
+            # earlyStop
+            killServerAndBot()
         return a
     def learn(self):
         batch_reward = calc_reward_to_go(self.env.reward_list)

@@ -137,6 +137,7 @@ class ResultType(JsonIntEnum):
     Win = 0
     Lose = 1
     Tie = 2
+    EarlyStop = 3
 
 
 class Emoji(Enum):
