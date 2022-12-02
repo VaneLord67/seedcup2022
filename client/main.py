@@ -229,6 +229,10 @@ def recvAndRefresh(ui: UI, client: Client):
             resp.type = PacketType.GameOver
             resp.data = GameOverResp(ResultType.EarlyStop, [0, 0])
             break
+        except ConnectionResetError:
+            resp.type = PacketType.GameOver
+            resp.data = GameOverResp(ResultType.EarlyStop, [0, 0])
+            break
 
     refreshUI(ui, resp)
     print(f"Game Over!")

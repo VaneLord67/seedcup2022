@@ -24,7 +24,7 @@ class Model():
             pass
         act_dim = 6
         self.action = 0
-        
+        self.reward = 0
         self.env = Enviroment()
         self.pgmodel = PGModel(obs_dim=16*16, act_dim=act_dim)
         self.alg = parl.algorithms.PolicyGradient(self.pgmodel, lr=LEARNING_RATE)
@@ -57,11 +57,12 @@ class Model():
         else:
             obs, self.action, reward = run_train_episode(self.env,self.action,self.resp)
         a = 'wedxza'[self.action]+'sj'
+        self.reward += reward#计算总reward
         with open('log_action.txt', 'a+')as file:
             print(a, file=file)
         with open('log_reward.txt', 'a+')as file:
-            print(reward, file=file)
-        if reward <= self.EarlyStopThreshold:
+            print(self.reward, file=file)
+        if self.reward <= self.EarlyStopThreshold:
             # earlyStop
             killServerAndBot()
         return a

@@ -16,7 +16,7 @@ def calc_reward_to_go(reward_list, gamma=0.8):
         # G_i = r_i + γ·G_i+1
         reward_list[i] += gamma * reward_list[i + 1]# Gt
         if reward_list[0]>0:
-            reward_list = [i*5 for i in reward_list]#胜利奖励分
+            reward_list = [i*1000 for i in reward_list]#胜利奖励分
             
     return np.array(reward_list)
 

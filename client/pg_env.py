@@ -8,8 +8,8 @@ point = {
     "othersland":-1,
     "myland":1,
     "whiteland":0,
-    "faster":5,
-    "blood":3,
+    "faster":50,
+    "blood":30,
     "enemy": -100,
     "me":100
 }
@@ -115,7 +115,7 @@ class Enviroment():
                     if actionResp.map.blocks[targetBlockPositionX*16-targetBlockPositionY].valid == False:
                         illegalMoveReward = -100
 
-            reward = scoreReward * 4 + hpReward * 10 + moveCDReward * 10 + killReward * 50 + illegalMoveReward
+            reward = scoreReward * 4 + hpReward * 5 + moveCDReward * 250 + killReward * 1000 + illegalMoveReward
             return reward
         else: 
             return 0
