@@ -4,7 +4,7 @@ import json
 from threading import Thread
 import time
 from main import *
-
+from mytrain import killServerAndBot
 
 def isPortAvailable(port: int) -> bool:
     '''判断端口是否可用'''
@@ -25,7 +25,7 @@ def runServerAndBot():
     ok = isPortAvailable(port)
     if not ok:
         port = port - 1
-        if port < 9000:
+        if port < 9900:
             port = 9999
         print("change port to", port)
         changeConfigPort(port)
@@ -57,18 +57,16 @@ def changeConfigPort(port: int):
     with open('./config.json', 'w') as f:
         json.dump(params, indent = 4, fp=f)
 
-def killServerAndBot():
-    subprocess.getoutput('''ps -ef |grep seedcupServer|grep -v grep|awk '{print $2}'|xargs kill -9''')
-
 def model_train():
-    epoch = 1
+    epoch = 10000
     for i in range(0, epoch):
+        time.sleep(0.5)
         initGlobalContext()
         seedcupServerThread, ok, port = runServerAndBot()
         if not ok:
             print("run server failed")
             continue
-        time.sleep(1)
+        time.sleep(0.5)
         main(port,i)
         print("result = ", result)
         print("resultScore = ", resultScore)

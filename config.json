@@ -8,7 +8,7 @@
     "EpollMaxEventsNum": 100,
     "EpollTimeout": 10,
     "TimerInitialValue": 200,
-    "TimerIntervalValue": 200,
+    "TimerIntervalValue": 100,
     "PolyWatermelonAttackDemage": 30,
     "PolyWatermelonAttackCD": 3,
     "DurianAttackDemage": 50,
@@ -42,7 +42,7 @@
             -7
         ]
     ],
-    "GameMaxFrame": 103,
+    "GameMaxFrame": 600,
     "GameMaxAction": 30,
     "RandomSeed": 114
 }

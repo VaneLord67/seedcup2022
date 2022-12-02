@@ -221,8 +221,18 @@ def recvAndRefresh(ui: UI, client: Client):
             gContext["gameBeginFlag"] = True
 
     while resp.type != PacketType.GameOver:
-        resp = client.recv()
-        refreshUI(ui, resp)
+        try:
+            resp = client.recv()
+            refreshUI(ui, resp)
+        except json.decoder.JSONDecodeError:
+            # kill server后代码会抛出JSONDecodeError异常，在这里捕获异常并构造一个GameOver的结果
+            resp.type = PacketType.GameOver
+            resp.data = GameOverResp(ResultType.EarlyStop, [0, 0])
+            break
+        except ConnectionResetError:
+            resp.type = PacketType.GameOver
+            resp.data = GameOverResp(ResultType.EarlyStop, [0, 0])
+            break
 
     refreshUI(ui, resp)
     print(f"Game Over!")
@@ -245,6 +255,9 @@ def recvAndRefresh(ui: UI, client: Client):
         print(
             "\33[1mThe goddess of victory is not on your side this time, but there is still a chance next time!\33[0m"
         )
+    elif resp.data.result == ResultType.EarlyStop:
+        result.append("earlyStop")
+        print("\33[1mEarlyStop! \33[0m")
 
     gContext["gameOverFlag"] = True
     print("Press any key to exit......")
@@ -290,6 +303,7 @@ def main(port=None,epoch=0):
         # gracefully shutdown
         t.join()
         client.model.learn()
+        client.model.saveHighQualityDataset()
 
 if __name__ == "__main__":
     initGlobalContext()
