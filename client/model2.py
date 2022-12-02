@@ -89,11 +89,9 @@ class Model():
                 idx = rewardObj[0]
                 reward = rewardObj[1]
                 if abs(reward) >= self.saveDataSetRewardThreshold:
-                    frame: ActionResp = frame_list[idx]
-                    frameJsonStr = frame.__repr__()
                     data = {
-                        'frame': frame,
+                        'frame': frame_list[idx],
                         'action': action_list[idx],
                         'reward': reward_list[idx],
                     }
-                    file.write(json.dumps(data, cls=JsonEncoder) + "\n")
+                    print(f'{data}', file=file)
