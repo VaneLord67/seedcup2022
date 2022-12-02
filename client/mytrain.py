@@ -34,6 +34,7 @@ def get_act(fileName='log_opearator.txt'):
         return acts
 def run_train_episode(env, act, actionResp):
     obs = env.get_obs(actionResp)#通过返回的resp来观测
+    env.frame_list.append(actionResp)
     action = env.agent.sample(obs)
     
     reward = env.get_reward(act, actionResp)
@@ -49,6 +50,7 @@ def run_train_episode(env, act, actionResp):
 # evaluate 5 episodes
 def run_evaluate_episodes(env, act, actionResp):
     obs = env.get_obs(actionResp)#通过返回的resp来观测
+    env.frame_list.append(actionResp)
     action = env.agent.predict(obs)
     
     reward = env.get_reward(act, actionResp)

@@ -17,6 +17,7 @@ class Model():
         #self.playerID = None
         LEARNING_RATE = 0.001
         self.EarlyStopThreshold: int = -100
+        self.saveDataSetRewardThreshold: int = 70
         self.modelPath = './pgmodel1.ckpt'
         with open('log_action.txt', 'w')as file:
             pass # 不需要手动close. with open会自动管理
@@ -68,7 +69,7 @@ class Model():
         return a
     def learn(self):
         batch_reward = calc_reward_to_go(self.env.reward_list)
-        self.env.agent.learn(self.env.obs_list, self.env.action_list,batch_reward)
+        self.env.agent.learn(self.env.obs_list[:-1], self.env.action_list[:-1],batch_reward[1:])
         #     model.resp = actionResp
         #     model.character = actionResp.characters
         #     model.map = actionResp.map
@@ -78,3 +79,21 @@ class Model():
         with open("log_saved.txt",'a+') as f:
             print("frame {} model saved in {}".format(self.frame,self.modelPath),file = f)
         return 'ok'
+
+    def saveHighQualityDataset(self):
+        frame_list = self.env.frame_list[:-1]
+        action_list = self.env.action_list[:-1]
+        reward_list = self.env.reward_list[1:]
+        with open('dataset.jsonl', 'a+') as file:
+            for rewardObj in enumerate(reward_list):
+                idx = rewardObj[0]
+                reward = rewardObj[1]
+                if abs(reward) >= self.saveDataSetRewardThreshold:
+                    frame: ActionResp = frame_list[idx]
+                    frameJsonStr = frame.__repr__()
+                    data = {
+                        'frame': frame,
+                        'action': action_list[idx],
+                        'reward': reward_list[idx],
+                    }
+                    file.write(json.dumps(data, cls=JsonEncoder) + "\n")

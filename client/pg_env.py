@@ -18,6 +18,7 @@ class Enviroment():
         self.reward_list = []
         self.action_list = []
         self.obs_list = []
+        self.frame_list = []
 
         self.agent: PGAgent
 

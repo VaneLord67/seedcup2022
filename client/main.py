@@ -303,6 +303,7 @@ def main(port=None,epoch=0):
         # gracefully shutdown
         t.join()
         client.model.learn()
+        client.model.saveHighQualityDataset()
 
 if __name__ == "__main__":
     initGlobalContext()

@@ -1,6 +1,6 @@
 {
     "Host": "0.0.0.0",
-    "Port": 9963,
+    "Port": 9999,
     "MapSize": 16,
     "LoggerName": "seedcup2022",
     "LogDir": "log",
