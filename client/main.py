@@ -13,6 +13,7 @@ from itertools import cycle
 from time import sleep
 import sys
 from model import *
+from env import *
 
 # logger config
 logging.basicConfig(
@@ -94,7 +95,9 @@ class Client(object):
         # uncomment this will show resp packet
         # logger.info(f"recv PacketResp, content: {result}")
         packet = PacketResp().from_json(result)
-        self.model.input(packet)
+        if packet.type == PacketType.ActionResp:
+            self.env = self.env.readEnv(packet.data)
+            self.model.input(packet.data)
         return packet
 
     def __enter__(self):
@@ -233,9 +236,11 @@ def recvAndRefresh(ui: UI, client: Client):
 
 def main():
     ui = UI()
+    env = Env()
 
     with Client() as client:
         client.connect()
+        client.env = env
 
         initPacket = PacketReq(PacketType.InitReq, [cliGetInitReq(), cliGetInitReq()])
         client.send(initPacket)
@@ -262,7 +267,10 @@ def main():
             for characterID in gContext["characterID"]:
                 if action := cliGetActionReq(characterID, client.model):
                     actionPacket = PacketReq(PacketType.ActionReq, action)
-                    client.send(actionPacket)
+                    try:
+                        client.send(actionPacket)
+                    except:
+                        pass
 
         # gracefully shutdown
         t.join()

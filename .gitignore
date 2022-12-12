@@ -7,3 +7,4 @@ dist
 main.spec
 *.ckpt
 *.jsonl
+result.json

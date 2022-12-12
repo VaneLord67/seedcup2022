@@ -1,5 +1,7 @@
 from resp import *
 from base import *
+from saveload import *
+from env import *
 import time 
 
 whitelandColor: int = 0
@@ -157,11 +159,12 @@ class Model(object):
         self.color: int = 0
         self.playerID: int = 0
         self.dirs: list(tuple(int, int)) = [(-1,1),(0,1),(1,0),(1,-1),(0,-1),(-1,0)]
+        self.frame: int = -1
     def output(self):
         time.sleep(0.1)
+        frame = self.resp.frame
         if not self.isAlive():
             return ""
-        frame = self.resp.frame
         dir_score = get_dir_score(map = self.map ,c = self.character[0],weapon=2)
         tool_score = get_tool_score(map = self.map ,c = self.character[0])
         st = direction(dir_score,tool_score)
@@ -173,7 +176,6 @@ class Model(object):
             st += 'k'
         #time.sleep(0.1)
         #record
-        
         fileName='log_opearator.txt'
         with open(fileName, 'a+') as file:
             print('frame:{}'.format(frame), file=file)
@@ -181,15 +183,16 @@ class Model(object):
             t = time.time()
             print('model cost {%.3f} s'%(t-self.t),file=file)
             self.t = t
+        
+        if self.resp and self.resp.frame > self.frame:
+            self.frame = self.resp.frame
+            save(self.resp, st)
         return st
 
-    def input(self, resp: PacketResp):
+    def input(self, actionResp: ActionResp):
         fileName='log_player.txt'
         #self.character = resp['data']['characters']
         #self.map = resp['data']['map']
-        if resp.type == PacketType.GameOver:
-            return
-        actionResp: ActionResp = resp.data
         self.resp = actionResp
         self.character = actionResp.characters
         self.map = actionResp.map
@@ -197,7 +200,7 @@ class Model(object):
         self.playerID: int = actionResp.playerID
         #save to file 
         with open(fileName, 'a+')as file:
-            print("resp = ", resp, file=file)
+            print("resp = ", actionResp, file=file)
 
     def isInMasterWeaponCD(self):
         for character in self.resp.characters:
