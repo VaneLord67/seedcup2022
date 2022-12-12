@@ -2,10 +2,15 @@ import math
 
 dir = [(-1,1),(0,1),(1,0),(1,-1),(0,-1),(-1,0)]
 s = 'wedxza'
+def d2s(d):
+    for i,j in enumerate(dir):
+        if j == d:
+            return i
+
 def toward(pos1,pos2):
     '''给出两点坐标，返回下一个移动的方向'''
 def cube_round(pos):
-    q = round(pos[0])
+    q = round(pos[0]+1e-6)
     r = round(pos[1])
     z = -pos[0]-pos[1]
     s = round(z)
@@ -20,7 +25,7 @@ def cube_round(pos):
         r = -q-s
     else:
         s = -q-r
-    return (q, r, s)
+    return (q, r)
 def cube_lerp(pos1, pos2, t):
     x1 = pos1[0]
     y1 = pos1[1] 
@@ -34,7 +39,8 @@ def distance(pos1,pos2):
     '''求出两点之间的距离返回int'''
     dx = pos1[0]-pos2[0]
     dy = pos1[1]-pos2[1]
-    return max(abs(dx),abs(dy))
+    dz = -dx-dy
+    return max(abs(dx),abs(dy),abs(dz))
 def line(pos1,pos2):
     '''输入两个点,求出两点之间的格子返回list'''
     n = distance(pos1,pos2)
@@ -72,5 +78,11 @@ def sweapon1(pos,d,t = 8):
     return(list(set(l)))
 def sweapon2(pos):
     return get_around_pos(pos,flag=2)
+
+def goTo(pos1,pos2):
+    '返回下一步'
+    l = line(pos1,pos2)
+    pos = (l[1][0]-l[0][0],l[1][1]-l[0][1])
+    return d2s(pos)
 if __name__ == '__main__':
-    print(sweapon1((0,0),3))
+    print(line((5,-20),(4,-18)))

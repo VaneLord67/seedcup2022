@@ -1,7 +1,7 @@
 from base import *
 from resp import *
 import time
-
+from model2 import Model
 path = "./finalData.jsonl"
 
 class SaveInfo():
@@ -25,17 +25,25 @@ def load(path: str):
             saveInfo: SaveInfo = SaveInfo(jsonObj['actionResp'], jsonObj['actions'])
             saveInfo.sequence = jsonObj['sequence']
             loadData.append(saveInfo)
-
+def getresp(sequence=None):
+    with open(path, 'r') as file:
+        content = file.readlines()
+        if sequence == None:
+            jsonObj: dict = json.loads(content[-1])
+            sequence = jsonObj['sequence']
+        for lineStr in content:
+            jsonObj: dict = json.loads(lineStr)
+            actionResp = ActionResp().from_json(json.dumps(jsonObj['actionResp']))
+            saveInfo: SaveInfo = SaveInfo(actionResp, jsonObj['actions'])
+            saveInfo.sequence = jsonObj['sequence']
+            if saveInfo.sequence != sequence:
+                yield saveInfo
+            
 if __name__ == '__main__':
     '''加载特定一次训练的信息'''
-    sequence = 1670844776
-    resultSaveInfo: SaveInfo
-    with open(path, 'r') as file:
-        for lineStr in file.readlines():
-            jsonObj: dict = json.loads(lineStr, cls=JsonEncoder)
-            saveInfo: SaveInfo = SaveInfo(jsonObj['actionResp'], jsonObj['actions'])
-            saveInfo.sequence = jsonObj['sequence']
-            if saveInfo.sequence == sequence:
-                resultSaveInfo = saveInfo
-                break
-    print(f"resultSaveInfo = {resultSaveInfo}")
+    model = Model()
+    for saveInfo in getresp():
+        actionResp = saveInfo.actionResp
+        model.input(actionResp)
+        st = model.output()
+        print(f"actionResp = {st}")

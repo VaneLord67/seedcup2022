@@ -12,7 +12,7 @@ from threading import Thread
 from itertools import cycle
 from time import sleep
 import sys
-from model import *
+from model2 import Model
 from env import *
 
 # logger config
@@ -26,29 +26,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
 # record the context of global data
-gContext = {
-    "playerID": None,
-    "characterID": [],
-    "gameOverFlag": False,
-    "prompt": (
-        "Take actions!\n"
-        "'s': move in current direction\n"
-        "'w': turn up\n"
-        "'e': turn up right\n"
-        "'d': turn down right\n"
-        "'x': turn down\n"
-        "'z': turn down left\n"
-        "'a': turn up left\n"
-        "'u': sneak\n"
-        "'i': unsneak\n"
-        "'j': master weapon attack\n"
-        "'k': slave weapon attack\n"
-        "Please complete all actions within one frame! \n"
-        "[example]: a12sdq2\n"
-    ),
-    "steps": ["⢿", "⣻", "⣽", "⣾", "⣷", "⣯", "⣟", "⡿"],
-    "gameBeginFlag": False,
-}
+
 
 
 class Client(object):
@@ -65,7 +43,7 @@ class Client(object):
         self.port = self.config.get("Port")
         assert self.host and self.port, "host and port must be provided"
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.model = Model(1,2)
+        self.model = Model()
 
     def connect(self):
         if self.socket.connect_ex((self.host, self.port)) == 0:
@@ -269,6 +247,7 @@ def main():
                     actionPacket = PacketReq(PacketType.ActionReq, action)
                     try:
                         client.send(actionPacket)
+                        sleep(0.2)
                     except:
                         pass
 
