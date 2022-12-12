@@ -26,9 +26,9 @@ def get_around_pos(pos):
     #dir = [(1,-1),(0,-1),(-1,0),(-1,1),(0,1),(1,0)]
     return [(i+pos[0],j+pos[1]) for i,j in dir]
 def get_block(blocks,pos):
-    id = pos[0]*16+abs(pos[1])
-    if pos[0] in range(13) and -pos[1] in range(13):
-        return blocks[id]
+    id = pos[0]*24+abs(pos[1])
+    if pos[0] in range(21) and -pos[1] in range(21):
+        return blocks[0]
     else:
         return None
 
