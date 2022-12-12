@@ -11,11 +11,12 @@ color2emoji = {
     ColorType.Black: Emoji.BlackBrick,
 }
 
-playerID2emoji = {
-    0: Emoji.Character1,
-    1: Emoji.Character2,
-    2: Emoji.Character3,
-    3: Emoji.Character4,
+playerIDCharacterID2emoji = {
+    0: {
+        0: Emoji.Character1,
+        1: Emoji.Character2,
+    },
+    1: {0: Emoji.Character3, 1: Emoji.Character4},
 }
 
 item2emoji = {BuffType.BuffHp: Emoji.BuffHp, BuffType.BuffSpeed: Emoji.BuffSpeed}
@@ -32,6 +33,7 @@ class BlockUI(object):
         x: int,
         y: int,
         color: ColorType = ColorType.White,
+        frame: int = 0,
         valid: bool = True,
         obj: ObjType = ObjType.Null,
         objData: Union[None, Character, Item, SlaveWeapon] = None,
@@ -53,17 +55,18 @@ class BlockUI(object):
         self.x = x
         self.y = y
         self.color = color
+        self.frame = frame
         self.valid = valid
         self.obj = obj
         self.data = objData
 
-    def get_emoji(self):
+    def get_emoji(self, frame):
         """Get emoji according to predetermined priority."""
 
         def _get_emoji(emoji: Emoji):
             return emoji._value_
 
-        if self.valid:
+        if self.valid and frame == self.frame:
             if self.obj == ObjType.Null:
                 assert isinstance(self.color, ColorType)
                 return _get_emoji(color2emoji[self.color])
@@ -71,13 +74,17 @@ class BlockUI(object):
                 assert isinstance(self.data, Character)
                 if not self.data.isAlive:
                     return _get_emoji(Emoji.CharacterDead)
-                return _get_emoji(playerID2emoji[self.data.playerID])
+                return _get_emoji(
+                    playerIDCharacterID2emoji[self.data.playerID][self.data.characterID]
+                )
             elif self.obj == ObjType.Item:
                 assert isinstance(self.data, Item)
                 return _get_emoji(item2emoji[self.data.buffType])
             elif self.obj == ObjType.SlaveWeapon:
                 assert isinstance(self.data, SlaveWeapon)
                 return _get_emoji(slave2emoji[self.data.weaponType])
+        elif self.valid and self.frame < frame:
+            return _get_emoji(Emoji.Mosaic)     
         else:
             return _get_emoji(Emoji.ObstacleBrick)
 
@@ -105,12 +112,19 @@ class UI(object):
         self._characters = characters
         self._score = score
         self._kill = kill
+        self._frame = 0
 
     def display(self):
-
         print(
-            f"playerID: {self.playerID}, color: {color2emoji[self.color].emoji()}, characterNum: {len(self.characters)}, character: {playerID2emoji[self.playerID].emoji()}, score: {self.score}, killNum: {self.kill}"
+            f"playerID: {self.playerID}, color: {color2emoji[self.color].emoji()}, characterNum: {len(self.characters)}, characters: ", end="",
         )
+
+        for character in self.characters:
+            print(
+                f"{playerIDCharacterID2emoji[self.playerID][character.characterID].emoji()}",
+                end=" ",
+            )
+        print(f"blockNum: {self.score}, killNum: {self.kill}")
 
         for character in self._characters:
             print(f"characterState: {character}")
@@ -118,8 +132,17 @@ class UI(object):
         for x in range(self.mapSize):
             print(" " * (self.mapSize - x - 1) * 2, end="")
             for y in range(self.mapSize):
-                print(self._blocks[x][y].get_emoji(), end="  ")
+                print(self._blocks[x][y].get_emoji(self.frame), end="  ")
             print("\n")
+
+    @property
+    def frame(self):
+        return self._frame
+
+    @frame.setter
+    def frame(self, frame):
+        if frame >= self._frame:
+            self._frame = frame
 
     @property
     def playerID(self):
@@ -144,6 +167,7 @@ class UI(object):
                 "y": int,
                 "color": ColorType,
                 "valid": bool,
+                "frame": int,
                 "obj": ObjType,
                 "objData": data
             }

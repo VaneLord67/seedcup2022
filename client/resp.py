@@ -45,6 +45,8 @@ class Character(JsonBase):
         direction: Direction = Direction.Above,
         color: ColorType = ColorType.White,
         hp: int = 0,
+        hideCD: int = 0,
+        hideCDLeft: int = 0,
         moveCD: int = 0,
         moveCDLeft: int = 0,
         isAlive: bool = True,
@@ -63,6 +65,8 @@ class Character(JsonBase):
         self.direction = direction
         self.color = color
         self.hp = hp
+        self.hideCD = hideCD,
+        self.hideCDLeft = hideCDLeft,
         self.moveCD = moveCD
         self.moveCDLeft = moveCDLeft
         self.isAlive = isAlive

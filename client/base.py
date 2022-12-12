@@ -141,7 +141,7 @@ class ResultType(JsonIntEnum):
 
 class Emoji(Enum):
     """Kawaii emojis!"""
-
+    Mosaic = "❓"
     WhiteBrick = "⬜"
     RedBrick = "🟥"
     GreenBrick = "🟩"

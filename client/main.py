@@ -165,6 +165,7 @@ def refreshUI(ui: UI, packet: PacketResp):
         ui.characters = data.characters
         ui.score = data.score
         ui.kill = data.kill
+        ui.frame = data.frame
 
         for block in data.map.blocks:
             if len(block.objs):
@@ -173,6 +174,7 @@ def refreshUI(ui: UI, packet: PacketResp):
                     "y": block.y,
                     "color": block.color,
                     "valid": block.valid,
+                    "frame": block.frame,
                     "obj": block.objs[-1].type,
                     "data": block.objs[-1].status,
                 }
@@ -182,6 +184,7 @@ def refreshUI(ui: UI, packet: PacketResp):
                     "y": block.y,
                     "color": block.color,
                     "valid": block.valid,
+                    "frame": block.frame,
                     "obj": ObjType.Null,
                 }
     subprocess.run(["clear"])
@@ -196,7 +199,9 @@ def recvAndRefresh(ui: UI, client: Client):
 
     if resp.type == PacketType.ActionResp:
         if len(resp.data.characters) and not gContext["gameBeginFlag"]:
-            gContext["characterID"] = resp.data.characters[-1].characterID
+            gContext["characterID"] = [
+                character.characterID for character in resp.data.characters
+            ]
             gContext["playerID"] = resp.data.playerID
             gContext["gameBeginFlag"] = True
 
@@ -232,7 +237,7 @@ def main():
     with Client() as client:
         client.connect()
 
-        initPacket = PacketReq(PacketType.InitReq, cliGetInitReq())
+        initPacket = PacketReq(PacketType.InitReq, [cliGetInitReq(), cliGetInitReq()])
         client.send(initPacket)
         print(gContext["prompt"])
 
@@ -251,14 +256,13 @@ def main():
             sleep(0.1)
 
         # IO thread accepts user input and sends requests
-        while not gContext["gameOverFlag"]:
-            if gContext["characterID"] is None:
+        while gContext["gameOverFlag"] is False:
+            if not gContext["characterID"]:
                 continue
-
-            if action := cliGetActionReq(gContext["characterID"],client.model):
-
-                actionPacket = PacketReq(PacketType.ActionReq, action)
-                client.send(actionPacket)
+            for characterID in gContext["characterID"]:
+                if action := cliGetActionReq(characterID, client.model):
+                    actionPacket = PacketReq(PacketType.ActionReq, action)
+                    client.send(actionPacket)
 
         # gracefully shutdown
         t.join()
