@@ -25,32 +25,6 @@ logging.basicConfig(
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
-# record the context of global data
-gContext = {
-    "playerID": None,
-    "characterID": [],
-    "gameOverFlag": False,
-    "prompt": (
-        "Take actions!\n"
-        "'s': move in current direction\n"
-        "'w': turn up\n"
-        "'e': turn up right\n"
-        "'d': turn down right\n"
-        "'x': turn down\n"
-        "'z': turn down left\n"
-        "'a': turn up left\n"
-        "'u': sneak\n"
-        "'i': unsneak\n"
-        "'j': master weapon attack\n"
-        "'k': slave weapon attack\n"
-        "Please complete all actions within one frame! \n"
-        "[example]: a12sdq2\n"
-    ),
-    "steps": ["⢿", "⣻", "⣽", "⣾", "⣷", "⣯", "⣟", "⡿"],
-    "gameBeginFlag": False,
-}
-
-
 class Client(object):
     """Client obj that send/recv packet.
 
@@ -97,7 +71,7 @@ class Client(object):
         packet = PacketResp().from_json(result)
         if packet.type == PacketType.ActionResp:
             self.env = self.env.readEnv(packet.data)
-            self.model.input(packet.data)
+            self.model.input(self.env)
         return packet
 
     def __enter__(self):
@@ -150,7 +124,13 @@ def cliGetActionReq(characterID: int, model):
 
     actionReqs = []
 
-    actions = model.output()
+    condition: threading.Condition = model.condition
+    condition.acquire()
+    try:
+        condition.wait(timeout=1)
+        actions = model.output()
+    finally:
+        condition.release()
 
     for s in get_action(actions):
         actionReq = ActionReq(characterID, *str2action[s])
@@ -235,6 +215,7 @@ def recvAndRefresh(ui: UI, client: Client):
 
 
 def main():
+    initSequence()
     ui = UI()
     env = Env()
 
