@@ -32,7 +32,7 @@ def load(path: str):
 
 def getresp(sequence=None):
     with open(saveloadPath, 'r') as file:
-        content = file.readlines()[-600:]
+        content = file.readlines()[-1200:]
         if sequence == None:
             jsonObj: dict = json.loads(content[-1])
             sequence = jsonObj['sequence']

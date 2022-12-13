@@ -52,10 +52,11 @@ def toolPick(env,tool_list):
     goto = [[(0,0),(0,0)],[(0,0),(0,0)]]
     state = [0,0]
     for t in tool_list:
-        if t.objs[0].status.buffType == BuffType.BuffHp:
-            blood.append(t)
-        else:
-            speed.append(t)
+        if t.objs[0].type==2:
+            if t.objs[0].status.buffType == BuffType.BuffHp:
+                blood.append(t)
+            else:
+                speed.append(t)
     for c in env.us:
         tool = None
         if c.moveCD != 1:
@@ -118,9 +119,18 @@ class Model(object):
                     output[flag] = getool(self.env,self.goto,flag)#得道具
                 if state == 2:
                     output[flag] = attackDenfence(self.env,self.goto,flag)
+                self.result = output
+
+
+                if self.env.us[flag].slaveWeapon.attackCDLeft == 0:
+                    self.result[flag] += 'k'
+                if self.env.us[flag].isAlive == False:
+                    self.result[flag] == ''
+
+                    
             if self.actionResp:
-                save(self.actionResp, output)
-            self.result = output
+                save(self.actionResp, self.result)
+            
             return self.result[characterID]
         else:
             return self.result[characterID]
