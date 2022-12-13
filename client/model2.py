@@ -4,35 +4,8 @@ import threading
 from saveload import *
 from ui import *
 import subprocess
-def show(ui,map,data):
-    ui.playerID = data.playerID
-    ui.color = data.color
-    ui.characters = data
-    ui.score = 0
-    ui.kill = 0
-    ui.frame = 0
-    for block in map.blocks:
-        if len(block.objs):
-            ui.block = {
-                "x": block.x,
-                "y": block.y,
-                "color": block.color,
-                "valid": block.valid,
-                "frame": block.frame,
-                "obj": block.objs[-1].type,
-                "data": block.objs[-1].status,
-            }
-        else:
-            ui.block = {
-                "x": block.x,
-                "y": block.y,
-                "color": block.color,
-                "valid": block.valid,
-                "frame": block.frame,
-                "obj": ObjType.Null,
-            }
-    subprocess.run(["clear"])
-    ui.display()
+
+
 def cruise(env,flag):
     character = env.us[flag]
     x = character.x
@@ -64,8 +37,6 @@ def cruise(env,flag):
                 mind = distance(pos,i)
                 pos2 = i
         env.dir[flag] = goTo(pos,pos2)
-    with open('log.txt','a') as f:
-        print(pos,flag,env.dir,file=f)
     return s[env.dir[flag]]+'sj'
 def findTool(env):
     tool_list = []
@@ -75,36 +46,67 @@ def findTool(env):
                 if obj.type == ObjType.Item:
                     tool_list.append(block)
     return tool_list
+def toolPick(env,tool_list):
+    blood = []
+    speed = []
+    goto = [[(0,0),(0,0)],[(0,0),(0,0)]]
+    state = [0,0]
+    for t in tool_list:
+        if t.objs[0].status.buffType == BuffType.BuffHp:
+            blood.append(t)
+        else:
+            speed.append(t)
+    for c in env.us:
+        tool = None
+        if c.moveCD != 1:
+            mds = 100
+            for sp in speed:
+                if mds > distance((c.x,c.y),(sp.x,sp.y)):
+                    mds = distance((c.x,c.y),(sp.x,sp.y)) 
+                    tool = sp        
+        if c.hp != 100:#血量优先级大于speed
+            mdb = 100
+            for b in blood:
+                if mdb > distance((c.x,c.y),(b.x,b.y)):
+                    mdb = distance((c.x,c.y),(b.x,b.y)) 
+                    tool = b  
+        if tool:
+            post = (tool.x,tool.y)
+            goto[c.characterID] = [(c.x,c.y),post]
+            state[c.characterID] = 1
+    return state,goto
+
+  
 def getool(env,goto,flag):
-    env.dir[flag] = goTo(goto[0],goto[1])
-    return s[env.dir[flag]]+'sj'
-def attackDenfence(env):
-    pass
+    a = goTo(goto[flag][0],goto[flag][1])
+    if a != None:
+        return s[a]+'sj'
+    else:
+        with open('debug.txt','a') as f:
+            print(goto[flag],file=f)
+def attackDenfence(env,goto,flag):
+    a = goTo(goto[flag][0],goto[flag][1])
+    return s[a]+'sj'
+
 class Model(object):
     def __init__(self):
         self.state = [0,0]#状态机初始化
         self.goto = [[(0,0),(0,0)],[(0,0),(0,0)]]
         self.result = []
         self.env = Env()
+        self.actionResp = None
         self.condition = threading.Condition()
     def input(self,env: Env):
         self.env = env
-        tool = findTool(env)
-        if len(tool):
-            for t in tool:
-                pos1 = (env.us[0].x,env.us[0].y)
-                pos2 = (env.us[1].x,env.us[1].y)
-                post = (t.x,t.y)
-                if distance(pos1,post)<distance(pos2,post):
-                    id = env.us[0].characterID
-                    pos = pos1
-                else:
-                    id = env.us[1].characterID
-                    pos = pos2
-                self.state[id] = 1
-                self.goto[id] = [pos,post]
-        else:
-            self.state = [0,0]
+        tool_list = findTool(env)
+        self.state,self.goto = toolPick(env,tool_list)
+        if len(env.enemy):
+            for enemy in env.enemy:
+                if enemy.isAlive == True:
+                    for us in env.us:
+                        if 0<distance((enemy.x,enemy.y),(us.x,us.y))<=6:
+                            self.state[us.characterID] = 2
+                            self.goto[us.characterID] = [(us.x,us.y),(enemy.x,enemy.y)]
 
     def output(self,characterID):
         if characterID==0:
@@ -113,20 +115,21 @@ class Model(object):
                 if state == 0:
                     output[flag] = cruise(self.env,flag)#巡航
                 if state == 1:
-                    output[flag] = getool(self.env,self.goto[flag],flag)#得道具
+                    output[flag] = getool(self.env,self.goto,flag)#得道具
                 if state == 2:
-                    output[flag] = attackDenfence(self.env,flag)
-            save(self.env, output)
+                    output[flag] = attackDenfence(self.env,self.goto,flag)
+            if self.actionResp:
+                save(self.actionResp, output)
             self.result = output
             return self.result[characterID]
         else:
             return self.result[characterID]
 def getenv():
-    findSequence = str(1670912505775) + "\n"
+    findSequence = str(1670917645822) + "\n"
     findFlag = False
     with open(saveloadPath, 'r') as file:
         #findSequence = file.readline()
-        for lineStr in file.readlines():
+        for lineStr in file.readlines()[-600:]:
             if findFlag:
                 if len(lineStr) == len(findSequence):
                     break
@@ -137,16 +140,16 @@ def getenv():
                 findFlag = True
 if __name__ == '__main__':
     '''加载特定一次训练的信息'''
-    # model = Model()
-    # ui = UI()
-    # characterID = 0
-    # #print(f"result = {saveInfos}")
-    # for saveInfo in getenv():
-    #     env = saveInfo.env
- 
-    #     #show(ui,env.map,env.us[0])
-    #     model.input(env)
-    #     st = model.output(characterID)
-    #     print(f"actions = {st}")
-    for result in getresp(1670916270881):
-        print(result)
+    packet =  PacketResp()
+    model = Model()
+    ui = UI()
+    characterID = 0
+    '1670917645822'
+    for saveInfo in getresp():
+        actionResp = saveInfo.actionResp
+        packet.data = actionResp
+        model.env = model.env.readEnv(actionResp)
+        refreshUI(ui,packet)
+        model.input(model.env)
+        st = model.output(characterID)
+        print(f"actions = {st}")

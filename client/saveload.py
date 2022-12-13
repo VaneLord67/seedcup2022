@@ -32,7 +32,7 @@ def load(path: str):
 
 def getresp(sequence=None):
     with open(saveloadPath, 'r') as file:
-        content = file.readlines()
+        content = file.readlines()[-600:]
         if sequence == None:
             jsonObj: dict = json.loads(content[-1])
             sequence = jsonObj['sequence']
@@ -41,7 +41,7 @@ def getresp(sequence=None):
             actionResp = ActionResp().from_json(json.dumps(jsonObj['actionResp']))
             saveInfo: SaveInfo = SaveInfo(actionResp, jsonObj['actions'])
             saveInfo.sequence = jsonObj['sequence']
-            if saveInfo.sequence != sequence:
+            if saveInfo.sequence == sequence:
                 yield saveInfo
 
 def refreshUI(ui: UI, packet: PacketResp):

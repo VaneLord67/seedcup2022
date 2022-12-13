@@ -43,14 +43,14 @@ class Env(JsonBase):
             copyBlock = Block().from_json(json.dumps(block, cls=JsonEncoder))
             self.map.blocks[24*copyBlock.x-copyBlock.y] = copyBlock
         self.us = [Character().from_json(json.dumps(copyActionResp.characters[0], cls=JsonEncoder)), 
-        Character().from_json(json.dumps(copyActionResp.characters[0], cls=JsonEncoder))]
+        Character().from_json(json.dumps(copyActionResp.characters[1], cls=JsonEncoder))]
         self.enemy = []
         for block in actionResp.map.blocks:
             if len(block.objs) > 0:
                 for obj in block.objs:
                     if obj.type == ObjType.Character:
                         character: Character = obj.status
-                        if character.playerID != gContext['playerID']:
+                        if character.playerID != self.us[0].playerID:
                             self.enemy.append(character)
         return self
     

@@ -1,6 +1,7 @@
 import math
 
-dir = [(-1,1),(0,1),(1,0),(1,-1),(0,-1),(-1,0)]
+# dir = [(-1,1),(0,1),(1,0),(1,-1),(0,-1),(-1,0)]
+dir = [(-1,1),(-1,0),(0,-1),(1,-1),(1,0),(0,1)]
 s = 'wedxza'
 def d2s(d):
     for i,j in enumerate(dir):
@@ -11,8 +12,8 @@ def toward(pos1,pos2):
     '''给出两点坐标，返回下一个移动的方向'''
 def cube_round(pos):
     q = round(pos[0]+1e-6)
-    r = round(pos[1])
-    z = -pos[0]-pos[1]
+    r = round(pos[1]+1e-6)
+    z = -pos[0]-pos[1]-2e-6
     s = round(z)
 
     q_diff = abs(q - z)
@@ -85,4 +86,4 @@ def goTo(pos1,pos2):
     pos = (l[1][0]-l[0][0],l[1][1]-l[0][1])
     return d2s(pos)
 if __name__ == '__main__':
-    print(line((5,-20),(4,-18)))
+    print(goTo((11, -2), (9, -1)))
