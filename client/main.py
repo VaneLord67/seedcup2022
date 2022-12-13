@@ -5,7 +5,7 @@ from req import *
 from resp import *
 from config import config
 from ui import UI
-import subprocess
+from saveload import refreshUI
 import logging
 import re
 from threading import Thread
@@ -136,40 +136,6 @@ def cliGetActionReq(characterID: int, model):
 
     return actionReqs
 
-
-def refreshUI(ui: UI, packet: PacketResp):
-    """Refresh the UI according to the response."""
-    data = packet.data
-    if packet.type == PacketType.ActionResp:
-        ui.playerID = data.playerID
-        ui.color = data.color
-        ui.characters = data.characters
-        ui.score = data.score
-        ui.kill = data.kill
-        ui.frame = data.frame
-
-        for block in data.map.blocks:
-            if len(block.objs):
-                ui.block = {
-                    "x": block.x,
-                    "y": block.y,
-                    "color": block.color,
-                    "valid": block.valid,
-                    "frame": block.frame,
-                    "obj": block.objs[-1].type,
-                    "data": block.objs[-1].status,
-                }
-            else:
-                ui.block = {
-                    "x": block.x,
-                    "y": block.y,
-                    "color": block.color,
-                    "valid": block.valid,
-                    "frame": block.frame,
-                    "obj": ObjType.Null,
-                }
-    subprocess.run(["clear"])
-    ui.display()
 
 
 def recvAndRefresh(ui: UI, client: Client):

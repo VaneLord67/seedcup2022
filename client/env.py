@@ -27,7 +27,7 @@ class Env():
         self.map: Map = Map()
         self.us: list[Character] = []
         self.enemy: list[Character] = []
-
+        self.tool = []
         self.dir = [0,0]
 
     def readEnv(self, actionResp: ActionResp):

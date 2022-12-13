@@ -2,6 +2,8 @@ from base import *
 from resp import *
 import time
 from model2 import Model
+import subprocess
+from ui import UI
 path = "./finalData.jsonl"
 
 class SaveInfo():
@@ -38,12 +40,49 @@ def getresp(sequence=None):
             saveInfo.sequence = jsonObj['sequence']
             if saveInfo.sequence != sequence:
                 yield saveInfo
-            
+
+def refreshUI(ui: UI, packet: PacketResp):
+    """Refresh the UI according to the response."""
+    data = packet.data
+    if packet.type == PacketType.ActionResp:
+        ui.playerID = data.playerID
+        ui.color = data.color
+        ui.characters = data.characters
+        ui.score = data.score
+        ui.kill = data.kill
+        ui.frame = data.frame
+
+        for block in data.map.blocks:
+            if len(block.objs):
+                ui.block = {
+                    "x": block.x,
+                    "y": block.y,
+                    "color": block.color,
+                    "valid": block.valid,
+                    "frame": block.frame,
+                    "obj": block.objs[-1].type,
+                    "data": block.objs[-1].status,
+                }
+            else:
+                ui.block = {
+                    "x": block.x,
+                    "y": block.y,
+                    "color": block.color,
+                    "valid": block.valid,
+                    "frame": block.frame,
+                    "obj": ObjType.Null,
+                }
+    subprocess.run(["clear"])
+    ui.display()
 if __name__ == '__main__':
     '''加载特定一次训练的信息'''
+    ui = UI()
+    packet =  PacketResp()
     model = Model()
     for saveInfo in getresp():
         actionResp = saveInfo.actionResp
+        packet.data = actionResp
+        refreshUI(ui,packet)
         model.input(actionResp)
         st = model.output()
         print(f"actionResp = {st}")
