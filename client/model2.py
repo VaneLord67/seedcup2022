@@ -1,5 +1,8 @@
 from utils import *
 from env import Env
+import threading
+from saveload import *
+
 def cruise(env,flag):
     character = env.us[flag]
     x = character.x
@@ -41,8 +44,9 @@ class Model(object):
     def __init__(self):
         self.state = [0,0]#状态机初始化
         self.env = Env()
-    def input(self,actionResp):
-        self.env.readEnv(actionResp)
+        self.condition = threading.Condition()
+    def input(self,env: Env):
+        self.env = env
     def output(self):
         output = ''
         for flag, state in enumerate(self.state):
@@ -52,4 +56,29 @@ class Model(object):
                 output += getool(self.env,flag)#得道具
             if state == 2:
                 output += attackDenfence(self.env,flag)
+        save(self.env, output)
         return output
+
+if __name__ == '__main__':
+    '''加载特定一次训练的信息'''
+    model = Model()
+    findSequence = str(1670902625355) + "\n"
+    resultSaveInfo = None
+    saveInfos: list[SaveInfo] = []
+    findFlag = False
+    with open(saveloadPath, 'r') as file:
+        for lineStr in file.readlines():
+            if findFlag:
+                if len(lineStr) == len(findSequence):
+                    break
+                jsonObj: dict = json.loads(lineStr)
+                saveInfo: SaveInfo = SaveInfo(Env().from_json(json.dumps(jsonObj['env'])), jsonObj['actions'])
+                saveInfos.append(saveInfo)
+            if lineStr == findSequence:
+                findFlag = True
+    print(f"result = {saveInfos}")
+    for saveInfo in saveInfos:
+        env = saveInfo.env
+        model.input(env)
+        st = model.output()
+        print(f"actions = {st}")

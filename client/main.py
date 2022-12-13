@@ -9,11 +9,13 @@ from saveload import refreshUI
 import logging
 import re
 from threading import Thread
+import threading
 from itertools import cycle
 from time import sleep
 import sys
 from model2 import Model
 from env import *
+from saveload import *
 
 # logger config
 logging.basicConfig(
@@ -24,10 +26,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
-
-# record the context of global data
-
-
 
 class Client(object):
     """Client obj that send/recv packet.
@@ -74,8 +72,8 @@ class Client(object):
         # logger.info(f"recv PacketResp, content: {result}")
         packet = PacketResp().from_json(result)
         if packet.type == PacketType.ActionResp:
-            self.env = self.env.readEnv(packet.data)
-            self.model.input(packet.data)
+            self.model.env = self.model.env.readEnv(packet.data)
+            self.model.input(self.model.env)
         return packet
 
     def __enter__(self):
@@ -128,7 +126,13 @@ def cliGetActionReq(characterID: int, model):
 
     actionReqs = []
 
-    actions = model.output()
+    condition: threading.Condition = model.condition
+    condition.acquire()
+    try:
+        condition.wait(timeout=1)
+        actions = model.output()
+    finally:
+        condition.release()
 
     for s in get_action(actions):
         actionReq = ActionReq(characterID, *str2action[s])
@@ -179,12 +183,11 @@ def recvAndRefresh(ui: UI, client: Client):
 
 
 def main():
+    initSequence()
     ui = UI()
-    env = Env()
 
     with Client() as client:
         client.connect()
-        client.env = env
 
         initPacket = PacketReq(PacketType.InitReq, [cliGetInitReq(), cliGetInitReq()])
         client.send(initPacket)
