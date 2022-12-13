@@ -2,10 +2,9 @@ from base import *
 from resp import *
 from env import *
 import time
-from model2 import Model
 import subprocess
 from ui import UI
-path = "./finalData.jsonl"
+saveloadPath = "./finalData.jsonl"
 sequence: int = int(round(time.time() * 1000))
 
 class SaveInfo():
@@ -81,13 +80,14 @@ def refreshUI(ui: UI, packet: PacketResp):
     ui.display()
 if __name__ == '__main__':
     '''加载特定一次训练的信息'''
-    ui = UI()
-    packet =  PacketResp()
-    model = Model()
-    for saveInfo in getresp():
-        actionResp = saveInfo.actionResp
-        packet.data = actionResp
-        refreshUI(ui,packet)
-        model.input(actionResp)
-        st = model.output()
-        print(f"actionResp = {st}")
+    pass
+    # ui = UI()
+    # packet =  PacketResp()
+    # #model = Model()
+    # for saveInfo in getresp():
+    #     actionResp = saveInfo.actionResp
+    #     packet.data = actionResp
+    #     refreshUI(ui,packet)
+    #     model.input(actionResp)
+    #     st = model.output()
+    #     print(f"actionResp = {st}")

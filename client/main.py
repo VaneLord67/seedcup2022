@@ -130,7 +130,7 @@ def cliGetActionReq(characterID: int, model):
     condition.acquire()
     try:
         condition.wait(timeout=1)
-        actions = model.output()
+        actions = model.output(characterID)
     finally:
         condition.release()
 
