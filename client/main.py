@@ -73,6 +73,7 @@ class Client(object):
         packet = PacketResp().from_json(result)
         if packet.type == PacketType.ActionResp:
             self.model.env = self.model.env.readEnv(packet.data)
+            self.model.actionResp = packet.data
             self.model.input(self.model.env)
         return packet
 

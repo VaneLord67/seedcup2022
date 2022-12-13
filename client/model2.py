@@ -56,11 +56,11 @@ class Model(object):
                 output += getool(self.env,flag)#得道具
             if state == 2:
                 output += attackDenfence(self.env,flag)
-        save(self.env, output)
+        save(self.actionResp, output)
         return output
 
 if __name__ == '__main__':
     '''加载特定一次训练的信息'''
     model = Model()
-    for result in getresp(1670902625355):
+    for result in getresp(1670916270881):
         print(result)
