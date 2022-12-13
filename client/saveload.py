@@ -2,7 +2,6 @@ from base import *
 from resp import *
 from env import *
 import time
-from model2 import Model
 
 saveloadPath = "./finalData.jsonl"
 sequence: int = int(round(time.time() * 1000))
@@ -30,30 +29,6 @@ def load(path: str):
 def initSequence():
     with open(saveloadPath, 'a+') as file:
         file.write(str(sequence) + "\n")
-
-if __name__ == '__main__':
-    '''加载特定一次训练的信息'''
-    model = Model()
-    findSequence = str(1670860025783) + "\n"
-    resultSaveInfo = None
-    saveInfos: list[SaveInfo] = []
-    findFlag = False
-    with open(saveloadPath, 'r') as file:
-        for lineStr in file.readlines():
-            if findFlag:
-                if len(lineStr) == len(findSequence):
-                    break
-                jsonObj: dict = json.loads(lineStr)
-                saveInfo: SaveInfo = SaveInfo(Env().from_json(json.dumps(jsonObj['env'])), jsonObj['actions'])
-                saveInfos.append(saveInfo)
-            if lineStr == findSequence:
-                findFlag = True
-    print(f"result = {saveInfos}")
-    for saveInfo in saveInfos:
-        actionResp = saveInfo.actionResp
-        model.input(actionResp)
-        st = model.output()
-        print(f"actionResp = {st}")
 
 def getresp(sequence=None):
     with open(saveloadPath, 'r') as file:

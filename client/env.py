@@ -28,22 +28,22 @@ gContext = {
 class Env(JsonBase):
     def __init__(self):
         super().__init__()
-        self.map: Map = Map()
-        self.map.blocks = [
-            [Block(x=x, y=-y) for y in range(24)]
-            for x in range(24)
-        ]
+        self.frame: int = -1
+        self.dir = [0,0]
         self.us: list[Character] = []
         self.enemy: list[Character] = []
-        self.frame: int = -1
-
-        self.dir = [0,0]
-
+        self.map: Map = Map()
+        for _ in range(576):
+            self.map.blocks.append(Block())
+        
     def readEnv(self, actionResp: ActionResp):
-        self.frame = actionResp.frame
+        copyActionResp = ActionResp().from_json(json.dumps(actionResp, cls=JsonEncoder))
+        self.frame = copyActionResp.frame
         for block in actionResp.map.blocks:
-            self.map.blocks[block.x][-block.y] = block
-        self.us = actionResp.characters
+            copyBlock = Block().from_json(json.dumps(block, cls=JsonEncoder))
+            self.map.blocks[24*copyBlock.x-copyBlock.y] = copyBlock
+        self.us = [Character().from_json(json.dumps(copyActionResp.characters[0], cls=JsonEncoder)), 
+        Character().from_json(json.dumps(copyActionResp.characters[0], cls=JsonEncoder))]
         self.enemy = []
         for block in actionResp.map.blocks:
             if len(block.objs) > 0:

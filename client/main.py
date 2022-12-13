@@ -72,8 +72,8 @@ class Client(object):
         # logger.info(f"recv PacketResp, content: {result}")
         packet = PacketResp().from_json(result)
         if packet.type == PacketType.ActionResp:
-            self.env = self.env.readEnv(packet.data)
-            self.model.input(self.env)
+            self.model.env = self.model.env.readEnv(packet.data)
+            self.model.input(self.model.env)
         return packet
 
     def __enter__(self):
@@ -219,11 +219,9 @@ def recvAndRefresh(ui: UI, client: Client):
 def main():
     initSequence()
     ui = UI()
-    env = Env()
 
     with Client() as client:
         client.connect()
-        client.env = env
 
         initPacket = PacketReq(PacketType.InitReq, [cliGetInitReq(), cliGetInitReq()])
         client.send(initPacket)
