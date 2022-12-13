@@ -9,10 +9,11 @@ import subprocess
 import logging
 import re
 from threading import Thread
+import threading
 from itertools import cycle
 from time import sleep
 import sys
-from model import *
+from model2 import Model
 from env import *
 
 # logger config
@@ -39,7 +40,7 @@ class Client(object):
         self.port = self.config.get("Port")
         assert self.host and self.port, "host and port must be provided"
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.model = Model(1,2)
+        self.model = Model()
 
     def connect(self):
         if self.socket.connect_ex((self.host, self.port)) == 0:
@@ -250,6 +251,7 @@ def main():
                     actionPacket = PacketReq(PacketType.ActionReq, action)
                     try:
                         client.send(actionPacket)
+                        sleep(0.2)
                     except:
                         pass
 

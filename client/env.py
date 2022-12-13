@@ -37,6 +37,8 @@ class Env(JsonBase):
         self.enemy: list[Character] = []
         self.frame: int = -1
 
+        self.dir = [0,0]
+
     def readEnv(self, actionResp: ActionResp):
         self.frame = actionResp.frame
         for block in actionResp.map.blocks:
