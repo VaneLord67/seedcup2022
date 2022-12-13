@@ -169,8 +169,11 @@ def recvAndRefresh(ui: UI, client: Client):
             gContext["gameBeginFlag"] = True
 
     while resp.type != PacketType.GameOver:
-        resp = client.recv()
-        refreshUI(ui, resp)
+        try:
+            resp = client.recv()
+            refreshUI(ui, resp)
+        except:
+            pass
 
     refreshUI(ui, resp)
     print(f"Game Over!")
