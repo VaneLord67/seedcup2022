@@ -137,16 +137,16 @@ def getenv():
                 findFlag = True
 if __name__ == '__main__':
     '''加载特定一次训练的信息'''
-    model = Model()
-    ui = UI()
-    characterID = 0
-    #print(f"result = {saveInfos}")
-    for saveInfo in getenv():
-        env = saveInfo.env
+    # model = Model()
+    # ui = UI()
+    # characterID = 0
+    # #print(f"result = {saveInfos}")
+    # for saveInfo in getenv():
+    #     env = saveInfo.env
  
-        #show(ui,env.map,env.us[0])
-        model.input(env)
-        st = model.output(characterID)
-        print(f"actions = {st}")
+    #     #show(ui,env.map,env.us[0])
+    #     model.input(env)
+    #     st = model.output(characterID)
+    #     print(f"actions = {st}")
     for result in getresp(1670902625355):
         print(result)
