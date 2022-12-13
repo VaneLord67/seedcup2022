@@ -183,7 +183,6 @@ def recvAndRefresh(ui: UI, client: Client):
 
 
 def main():
-    initSequence()
     ui = UI()
 
     with Client() as client:

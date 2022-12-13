@@ -148,3 +148,5 @@ if __name__ == '__main__':
         model.input(env)
         st = model.output(characterID)
         print(f"actions = {st}")
+    for result in getresp(1670902625355):
+        print(result)

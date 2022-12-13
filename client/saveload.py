@@ -8,14 +8,15 @@ saveloadPath = "./finalData.jsonl"
 sequence: int = int(round(time.time() * 1000))
 
 class SaveInfo():
-    def __init__(self, env: Env, actions: str):
+    def __init__(self, actionResp: ActionResp, actions: str):
+        self.sequence: int = sequence
         self.actions: str = actions
-        self.env: Env = env
+        self.actionResp: ActionResp = actionResp
 
-def save(env: Env, actions: str, path: str = saveloadPath):
+def save(actionResp: ActionResp, actions: str, path: str = saveloadPath):
     # 需要每次save有一个特定的序号
     with open(path, 'a+') as file:
-        saveInfo: SaveInfo = SaveInfo(env, actions)
+        saveInfo: SaveInfo = SaveInfo(actionResp, actions)
         file.write(json.dumps(saveInfo.__dict__, cls=JsonEncoder) + "\n")
 
 def load(path: str):
@@ -24,12 +25,10 @@ def load(path: str):
     with open(path, 'r') as file:
         for lineStr in file.readlines():
             jsonObj: dict = json.loads(lineStr, cls=JsonEncoder)
-            saveInfo: SaveInfo = SaveInfo(jsonObj['env'], jsonObj['actions'])
+            saveInfo: SaveInfo = SaveInfo(jsonObj['actionResp'], jsonObj['actions'])
+            saveInfo.sequence = jsonObj['sequence']
             loadData.append(saveInfo)
-
-def initSequence():
-    with open(saveloadPath, 'a+') as file:
-        file.write(str(sequence) + "\n")
+    return loadData
 
 def getresp(sequence=None):
     with open(saveloadPath, 'r') as file:
