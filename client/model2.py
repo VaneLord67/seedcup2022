@@ -99,6 +99,7 @@ class Model(object):
         self.condition = threading.Condition()
         with open('output.txt','w') as f:
             pass
+        self.frame: int = -1
     def input(self,env: Env):
         a = time.time()
         self.env = env
@@ -111,7 +112,12 @@ class Model(object):
                         if 0<distance((enemy.x,enemy.y),(us.x,us.y))<=6:
                             self.state[us.characterID] = 2
                             self.goto[us.characterID] = [(us.x,us.y),(enemy.x,enemy.y)]
-        print('input_cost:{}'.format(time.time()-a),'state:{}'.format(self.state))
+        print('input_cost:{}'.format(time.time()-a),'state:{}'.format(self.state))        if env.frame > self.frame:
+            self.condition.acquire()
+            self.condition.notify()
+            self.condition.release()
+            self.frame = env.frame
+
     def output(self,characterID):
         a = time.time()
         if characterID==0:
