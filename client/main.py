@@ -138,13 +138,7 @@ def cliGetActionReq(characterID: int, model):
 
     actionReqs = []
 
-    condition: threading.Condition = model.condition
-    condition.acquire()
-    try:
-        condition.wait(timeout=0.2)
-        actions = model.output(characterID)
-    finally:
-        condition.release()
+    actions = model.output(characterID)
 
     for s in get_action(actions):
         actionReq = ActionReq(characterID, *str2action[s])
@@ -225,13 +219,19 @@ def main():
         while gContext["gameOverFlag"] is False:
             if not gContext["characterID"]:
                 continue
-            for characterID in gContext["characterID"]:
-                if action := cliGetActionReq(characterID, client.model):
-                    actionPacket = PacketReq(PacketType.ActionReq, action)
-                    try:
-                        client.send(actionPacket)
-                    except:
-                        pass
+            condition: threading.Condition = client.model.condition
+            condition.acquire()
+            try:
+                condition.wait(timeout=0.2)
+                for characterID in gContext["characterID"]:
+                    if action := cliGetActionReq(characterID, client.model):
+                        actionPacket = PacketReq(PacketType.ActionReq, action)
+                        try:
+                            client.send(actionPacket)
+                        except:
+                            pass
+            finally:
+                condition.release()
 
         # gracefully shutdown
         t.join()
