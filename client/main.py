@@ -92,8 +92,8 @@ def cliGetInitReq1():
     """Get init request from user input."""
     # masterWeaponType = input("Make choices!\nmaster weapon type: [select from {1-2}]: ")
     # slaveWeaponType = input("slave weapon type: [select from {1-2}]: ")
-    masterWeaponType = 1
-    slaveWeaponType = 1
+    masterWeaponType = "1"
+    slaveWeaponType = "1"
     return InitReq(
         MasterWeaponType(int(masterWeaponType)), SlaveWeaponType(int(slaveWeaponType))
     )
@@ -101,8 +101,8 @@ def cliGetInitReq2():
     """Get init request from user input."""
     # masterWeaponType = input("Make choices!\nmaster weapon type: [select from {1-2}]: ")
     # slaveWeaponType = input("slave weapon type: [select from {1-2}]: ")
-    masterWeaponType = 2
-    slaveWeaponType = 1
+    masterWeaponType = "2"
+    slaveWeaponType = "1"
     return InitReq(
         MasterWeaponType(int(masterWeaponType)), SlaveWeaponType(int(slaveWeaponType))
     )
@@ -221,8 +221,8 @@ def main():
             if not gContext["characterID"]:
                 continue
             condition: threading.Condition = client.model.condition
-            condition.acquire()
             try:
+                condition.acquire()
                 condition.wait(timeout=1)
                 for characterID in gContext["characterID"]:
                     if action := cliGetActionReq(characterID, client.model):

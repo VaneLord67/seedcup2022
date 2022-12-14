@@ -76,6 +76,7 @@ class Character(JsonBase):
         self.godTimeLeft = godTimeLeft
         self.slaveWeapon = slaveWeapon
         self.masterWeapon = masterWeapon
+    
     def from_json(self, j: str):
         d = json.loads(j)
         for key, value in d.items():
