@@ -8,3 +8,4 @@ main.spec
 *.ckpt
 *.jsonl
 result.json
+output.txt
