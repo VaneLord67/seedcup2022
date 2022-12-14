@@ -114,11 +114,10 @@ class Model(object):
                             self.state[us.characterID] = 2
                             self.goto[us.characterID] = [(us.x,us.y),(enemy.x,enemy.y)]       
         if env.frame > self.frame:
+            self.frame = env.frame
             self.condition.acquire()
             self.condition.notify()
             self.condition.release()
-            self.frame = env.frame
-        return None
 
     def output(self,characterID):
         a = time.time()

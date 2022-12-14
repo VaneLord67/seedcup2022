@@ -141,7 +141,7 @@ def cliGetActionReq(characterID: int, model):
     condition: threading.Condition = model.condition
     condition.acquire()
     try:
-        condition.wait(timeout=1)
+        condition.wait(timeout=0.2)
         actions = model.output(characterID)
     finally:
         condition.release()
