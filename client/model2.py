@@ -97,9 +97,10 @@ class Model(object):
         self.env = Env()
         self.actionResp = None
         self.condition = threading.Condition()
+        self.frame: int = -1
         with open('output.txt','w') as f:
             pass
-        self.frame: int = -1
+        
     def input(self,env: Env):
         a = time.time()
         self.env = env
@@ -135,17 +136,19 @@ class Model(object):
                     output[flag] += 's'
                 else:
                     output[flag] = s[(s2i[output[flag]] + self.env.us[flag].moveCDLeft)%6]
-                if self.env.us[flag].masterWeapon.attackCDLeft == 0:
-                    output[flag] += 'j'
-                if self.env.us[flag].slaveWeapon.attackCDLeft == 0:#使用副武器
+                if state == 2 and self.env.us[flag].slaveWeapon.attackCDLeft == 0:#使用副武器
                     output[flag] += 'k'
+                else:
+                    if self.env.us[flag].masterWeapon.attackCDLeft == 0:#使用主武器
+                        output[flag] += 'j'
+
                 if self.env.us[flag].isAlive == False:#死亡不输入
-                    output[flag] == ''
+                    output[flag] = ''
             self.result = output
             if self.actionResp:
                 save(self.actionResp, self.result)
                 with open('output.txt','a') as f:
-                    print('frame:{}'.format(self.actionResp.frame),'action{}'.format(self.result),file=f)
+                    print('frame:{}'.format(self.actionResp.frame),'action{}'.format(self.result),'state:{}'.format(self.state),file=f)
                     print('output_cost:{}'.format(time.time()-a),'state:{}'.format(self.state))
             return self.result[characterID]
         else:

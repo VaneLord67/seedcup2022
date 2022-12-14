@@ -8,7 +8,7 @@
     "EpollMaxEventsNum": 100,
     "EpollTimeout": 10,
     "TimerInitialValue": 400,
-    "TimerIntervalValue": 400,
+    "TimerIntervalValue": 200,
     "PolyWatermelonAttackDemage": 30,
     "PolyWatermelonAttackCD": 3,
     "DurianAttackDemage": 50,
