@@ -1,4 +1,3 @@
-import math
 
 # dir = [(-1,1),(0,1),(1,0),(1,-1),(0,-1),(-1,0)]
 dir = [(-1,1),(-1,0),(0,-1),(1,-1),(1,0),(0,1)]
@@ -84,6 +83,8 @@ def sweapon2(pos):
 
 def goTo(pos1,pos2):
     '返回下一步'
+    if pos1 == pos2:
+        return ''
     l = line(pos1,pos2)
     pos = (l[1][0]-l[0][0],l[1][1]-l[0][1])
     return d2s(pos)

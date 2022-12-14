@@ -163,11 +163,9 @@ def recvAndRefresh(ui: UI, client: Client):
             gContext["gameBeginFlag"] = True
 
     while resp.type != PacketType.GameOver:
-        try:
-            resp = client.recv()
-            refreshUI(ui, resp)
-        except:
-            pass
+        resp = client.recv()
+        refreshUI(ui, resp)
+    
 
     refreshUI(ui, resp)
     print(f"Game Over!")
@@ -222,7 +220,7 @@ def main():
             condition: threading.Condition = client.model.condition
             condition.acquire()
             try:
-                condition.wait(timeout=0.2)
+                condition.wait(timeout=1)
                 for characterID in gContext["characterID"]:
                     if action := cliGetActionReq(characterID, client.model):
                         actionPacket = PacketReq(PacketType.ActionReq, action)

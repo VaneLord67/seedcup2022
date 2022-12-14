@@ -98,7 +98,7 @@ class Model(object):
         self.actionResp = None
         self.condition = threading.Condition()
         self.frame: int = -1
-        with open('output.txt','w') as f:
+        with open('log_output.txt','w') as f:
             pass
         
     def input(self,env: Env):
@@ -134,7 +134,7 @@ class Model(object):
                 if self.env.us[flag].moveCDLeft == 0:
                     output[flag] += 's'
                 else:
-                    output[flag] = s[(s2i[output[flag]] + self.env.us[flag].moveCDLeft)%6]
+                    output[flag] = s[(s2i[output[flag]] - self.env.us[flag].moveCDLeft)%6]
                 if state == 2 and self.env.us[flag].slaveWeapon.attackCDLeft == 0:#使用副武器
                     output[flag] += 'k'
                 else:
