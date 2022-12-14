@@ -180,4 +180,4 @@ if __name__ == '__main__':
         #refreshUI(ui,packet)
         model.input(model.env)
         st = model.output(characterID)
-        print('frame = {}'.format(actionResp.frame))
+        print('frame = {}'.format(actionResp.frame),'action:{}'.format(st))
