@@ -146,7 +146,7 @@ class Model(object):
             self.result = output
             if self.actionResp:
                 save(self.actionResp, self.result)
-                with open('output.txt','a') as f:
+                with open('log_output.txt','a') as f:
                     print('frame:{}'.format(self.actionResp.frame),'action{}'.format(self.result),'state:{}'.format(self.state),file=f)
                     print('output_cost:{}'.format(time.time()-a),'state:{}'.format(self.state))
             return self.result[characterID]

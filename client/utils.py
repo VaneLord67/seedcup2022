@@ -1,9 +1,9 @@
 import math
 
 # dir = [(-1,1),(0,1),(1,0),(1,-1),(0,-1),(-1,0)]
-dir = [(-1,1),(-1,0),(0,-1),(1,-1),(1,0),(0,1)]
+dir = [(-1,1),(-1,0),(0,-1),(1,-1),(1,0),(0,1),(0,0)]
 s = 'wedxza'
-s2i = {'w':0,'e':1,'d':2,'x':3,'z':4,'a':5}
+s2i = {'w':0,'e':1,'d':2,'x':3,'z':4,'a':5,}
 def d2s(d):
     for i,j in enumerate(dir):
         if j == d:
@@ -49,6 +49,7 @@ def line(pos1,pos2):
     result = []
     for i in range(n+1):
         result.append(cube_round(cube_lerp(pos1,pos2,1.0/n * i)))
+    
     return result
 def get_around_pos(pos,flag = 1):
     if flag == 1:
