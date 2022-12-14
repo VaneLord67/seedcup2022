@@ -76,6 +76,21 @@ class Character(JsonBase):
         self.godTimeLeft = godTimeLeft
         self.slaveWeapon = slaveWeapon
         self.masterWeapon = masterWeapon
+    
+    def from_json(self, j: str):
+        d = json.loads(j)
+        for key, value in d.items():
+            if key in self.__dict__:
+                # if key == "characters":
+                #     self.characters = [Character().from_json(json.dumps(v)) for v in value]
+                if hasattr(self.__dict__[key], "from_json"):
+                    setattr(self, key, self.__dict__[key].from_json(json.dumps(value)))
+                else:
+                    setattr(self, key, value)
+        # buggy
+        value = d.pop("masterWeapon")
+        self.masterWeapon = MasterWeapon().from_json(json.dumps(value))
+        return self
 
 
 class BuffType(JsonIntEnum):
