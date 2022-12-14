@@ -97,6 +97,7 @@ class Model(object):
         self.env = Env()
         self.actionResp = None
         self.condition = threading.Condition()
+        self.frame: int = -1
     def input(self,env: Env):
         self.env = env
         tool_list = findTool(env)
@@ -108,6 +109,11 @@ class Model(object):
                         if 0<distance((enemy.x,enemy.y),(us.x,us.y))<=6:
                             self.state[us.characterID] = 2
                             self.goto[us.characterID] = [(us.x,us.y),(enemy.x,enemy.y)]
+        if env.frame > self.frame:
+            self.condition.acquire()
+            self.condition.notify()
+            self.condition.release()
+            self.frame = env.frame
 
     def output(self,characterID):
         if characterID==0:
