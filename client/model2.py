@@ -64,13 +64,19 @@ def toolPick(env,tool_list):
             for sp in speed:
                 if mds > distance((c.x,c.y),(sp.x,sp.y)):
                     mds = distance((c.x,c.y),(sp.x,sp.y)) 
-                    tool = sp        
+                    if mds > 8:
+                        tool = None
+                    else:
+                        tool = sp      
         if c.hp != 100:#血量优先级大于speed
             mdb = 100
             for b in blood:
                 if mdb > distance((c.x,c.y),(b.x,b.y)):
                     mdb = distance((c.x,c.y),(b.x,b.y)) 
-                    tool = b  
+                    if mdb > 8:
+                        tool = None
+                    else:
+                        tool = b  
         if tool:
             post = (tool.x,tool.y)
             goto[c.characterID] = [(c.x,c.y),post]
@@ -133,13 +139,14 @@ class Model(object):
 
                 if self.env.us[flag].moveCDLeft == 0:
                     output[flag] += 's'
-                else:
-                    output[flag] = s[(s2i[output[flag]] - self.env.us[flag].moveCDLeft)%6]
                 if state == 2 and self.env.us[flag].slaveWeapon.attackCDLeft == 0:#使用副武器
                     output[flag] += 'k'
                 else:
                     if self.env.us[flag].masterWeapon.attackCDLeft == 0:#使用主武器
                         output[flag] += 'j'
+                        
+                if 's' not in output[flag] and 'j' not in output[flag] and 'k' not in output[flag]:#没有行动时进行张望
+                    output[flag] = s[(s2i[output[flag]] - self.env.us[flag].moveCDLeft)%6]
 
                 if self.env.us[flag].isAlive == False:#死亡不输入
                     output[flag] = ''
@@ -148,7 +155,7 @@ class Model(object):
                 save(self.actionResp, self.result)
                 with open('log_output.txt','a') as f:
                     print('frame:{}'.format(self.actionResp.frame),'action{}'.format(self.result),'state:{}'.format(self.state),file=f)
-                    print('output_cost:{}'.format(time.time()-a),'state:{}'.format(self.state))
+                    print('bengle :(')
             return self.result[characterID]
         else:
             return self.result[characterID]

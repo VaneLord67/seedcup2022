@@ -1,3 +1,4 @@
+import math
 
 # dir = [(-1,1),(0,1),(1,0),(1,-1),(0,-1),(-1,0)]
 dir = [(-1,1),(-1,0),(0,-1),(1,-1),(1,0),(0,1)]
@@ -8,8 +9,6 @@ def d2s(d):
         if j == d:
             return i
 
-def toward(pos1,pos2):
-    '''给出两点坐标，返回下一个移动的方向'''
 def cube_round(pos):
     q = round(pos[0]+1e-6)
     r = round(pos[1]+1e-6)
