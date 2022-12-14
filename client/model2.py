@@ -111,12 +111,13 @@ class Model(object):
                     for us in env.us:
                         if 0<distance((enemy.x,enemy.y),(us.x,us.y))<=6:
                             self.state[us.characterID] = 2
-                            self.goto[us.characterID] = [(us.x,us.y),(enemy.x,enemy.y)]
-        print('input_cost:{}'.format(time.time()-a),'state:{}'.format(self.state))        if env.frame > self.frame:
+                            self.goto[us.characterID] = [(us.x,us.y),(enemy.x,enemy.y)]       
+        if env.frame > self.frame:
             self.condition.acquire()
             self.condition.notify()
             self.condition.release()
             self.frame = env.frame
+        return None
 
     def output(self,characterID):
         a = time.time()
@@ -145,7 +146,7 @@ class Model(object):
                 save(self.actionResp, self.result)
                 with open('output.txt','a') as f:
                     print('frame:{}'.format(self.actionResp.frame),'action{}'.format(self.result),file=f)
-            print('output_cost:{}'.format(time.time()-a),'state:{}'.format(self.state))
+                    print('output_cost:{}'.format(time.time()-a),'state:{}'.format(self.state))
             return self.result[characterID]
         else:
             return self.result[characterID]
