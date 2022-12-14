@@ -4,7 +4,7 @@ import threading
 from saveload import *
 from ui import *
 import subprocess
-
+import time
 
 def cruise(env,flag):
     character = env.us[flag]
@@ -37,7 +37,7 @@ def cruise(env,flag):
                 mind = distance(pos,i)
                 pos2 = i
         env.dir[flag] = goTo(pos,pos2)
-    return s[env.dir[flag]]+'sj'
+    return s[env.dir[flag]]
 def findTool(env):
     tool_list = []
     for block in env.map.blocks:
@@ -52,7 +52,7 @@ def toolPick(env,tool_list):
     goto = [[(0,0),(0,0)],[(0,0),(0,0)]]
     state = [0,0]
     for t in tool_list:
-        if t.objs[0].type==2:
+        if t.objs[0].type==2:#如果是buff
             if t.objs[0].status.buffType == BuffType.BuffHp:
                 blood.append(t)
             else:
@@ -81,13 +81,13 @@ def toolPick(env,tool_list):
 def getool(env,goto,flag):
     a = goTo(goto[flag][0],goto[flag][1])
     if a != None:
-        return s[a]+'sj'
+        return s[a]
     else:
         with open('debug.txt','a') as f:
             print(goto[flag],file=f)
 def attackDenfence(env,goto,flag):
     a = goTo(goto[flag][0],goto[flag][1])
-    return s[a]+'sj'
+    return s[a]
 
 class Model(object):
     def __init__(self):
@@ -97,7 +97,10 @@ class Model(object):
         self.env = Env()
         self.actionResp = None
         self.condition = threading.Condition()
+        with open('output.txt','w') as f:
+            pass
     def input(self,env: Env):
+        a = time.time()
         self.env = env
         tool_list = findTool(env)
         self.state,self.goto = toolPick(env,tool_list)
@@ -108,8 +111,9 @@ class Model(object):
                         if 0<distance((enemy.x,enemy.y),(us.x,us.y))<=6:
                             self.state[us.characterID] = 2
                             self.goto[us.characterID] = [(us.x,us.y),(enemy.x,enemy.y)]
-
+        print('input_cost:{}'.format(time.time()-a),'state:{}'.format(self.state))
     def output(self,characterID):
+        a = time.time()
         if characterID==0:
             output = ['','']
             for flag, state in enumerate(self.state):
@@ -119,35 +123,40 @@ class Model(object):
                     output[flag] = getool(self.env,self.goto,flag)#得道具
                 if state == 2:
                     output[flag] = attackDenfence(self.env,self.goto,flag)
-                self.result = output
 
-
-                if self.env.us[flag].slaveWeapon.attackCDLeft == 0:
-                    self.result[flag] += 'k'
-                if self.env.us[flag].isAlive == False:
-                    self.result[flag] == ''
-
-                    
+                if self.env.us[flag].moveCDLeft == 0:
+                    output[flag] += 's'
+                else:
+                    output[flag] = s[(s2i[output[flag]] + self.env.us[flag].moveCDLeft)%6]
+                if self.env.us[flag].masterWeapon.attackCDLeft == 0:
+                    output[flag] += 'j'
+                if self.env.us[flag].slaveWeapon.attackCDLeft == 0:#使用副武器
+                    output[flag] += 'k'
+                if self.env.us[flag].isAlive == False:#死亡不输入
+                    output[flag] == ''
+            self.result = output
             if self.actionResp:
                 save(self.actionResp, self.result)
-            
+                with open('output.txt','a') as f:
+                    print('frame:{}'.format(self.actionResp.frame),'action{}'.format(self.result),file=f)
+            print('output_cost:{}'.format(time.time()-a),'state:{}'.format(self.state))
             return self.result[characterID]
         else:
             return self.result[characterID]
-def getenv():
-    findSequence = str(1670917645822) + "\n"
-    findFlag = False
-    with open(saveloadPath, 'r') as file:
-        #findSequence = file.readline()
-        for lineStr in file.readlines()[-600:]:
-            if findFlag:
-                if len(lineStr) == len(findSequence):
-                    break
-                jsonObj: dict = json.loads(lineStr)
-                saveInfo: SaveInfo = SaveInfo(Env().from_json(json.dumps(jsonObj['env'])), jsonObj['actions'])
-                yield saveInfo
-            if lineStr == findSequence:
-                findFlag = True
+# def getenv():
+#     findSequence = str(1670917645822) + "\n"
+#     findFlag = False
+#     with open(saveloadPath, 'r') as file:
+#         #findSequence = file.readline()
+#         for lineStr in file.readlines()[-600:]:
+#             if findFlag:
+#                 if len(lineStr) == len(findSequence):
+#                     break
+#                 jsonObj: dict = json.loads(lineStr)
+#                 saveInfo: SaveInfo = SaveInfo(Env().from_json(json.dumps(jsonObj['env'])), jsonObj['actions'])
+#                 yield saveInfo
+#             if lineStr == findSequence:
+#                 findFlag = True
 if __name__ == '__main__':
     '''加载特定一次训练的信息'''
     packet =  PacketResp()
@@ -159,7 +168,7 @@ if __name__ == '__main__':
         actionResp = saveInfo.actionResp
         packet.data = actionResp
         model.env = model.env.readEnv(actionResp)
-        refreshUI(ui,packet)
+        #refreshUI(ui,packet)
         model.input(model.env)
         st = model.output(characterID)
-        print(f"actions = {st}")
+        print('frame = {}'.format(actionResp.frame))

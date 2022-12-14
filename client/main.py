@@ -230,7 +230,7 @@ def main():
                     actionPacket = PacketReq(PacketType.ActionReq, action)
                     try:
                         client.send(actionPacket)
-                        sleep(0.2)
+                        #sleep(0.2)
                     except:
                         pass
 
