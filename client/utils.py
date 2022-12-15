@@ -62,8 +62,8 @@ def mweapon2(pos,d):
     (cx,cy) = (pos[0]+dir[d][0]*2,pos[1]+dir[d][1]*2)
     return get_around_pos((cx,cy))+[(cx,cy)]
 def mweapon1(pos,d):
-    d1 = d-1%6
-    d2 = d+1%6
+    d1 = (d-1)%6
+    d2 = (d+1)%6
     c1 = (pos[0]+dir[d][0],pos[1]+dir[d][1])
     c2 = (pos[0]+dir[d1][0]*2,pos[1]+dir[d1][1]*2)
     c3 = (pos[0]+dir[d2][0]*2,pos[1]+dir[d2][1]*2)

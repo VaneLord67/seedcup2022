@@ -5,7 +5,7 @@ from saveload import *
 from ui import *
 import subprocess
 import time
-
+import copy
 def cruise(env,flag):
     character = env.us[flag]
     x = character.x
@@ -91,8 +91,80 @@ def getool(env,goto,flag):
     else:
         with open('debug.txt','a') as f:
             print(goto[flag],file=f)
+def get_operator(mCD,mCDL,aCD,aCDL,lun=5):
+    #搜索5frame
+    operator_list = [[[],mCDL,aCDL]]#[[操作,mcd,scd]] 
+    for i in range(lun):    
+        temp = []
+        for op in operator_list:
+            if op[1] != 0:
+                temp.append([op[0]+['_'],op[1] - 1,op[2]])
+            else:
+                for st in 'wedxza':
+                    temp.append([op[0]+[st+'s'],mCD - 1,op[2]])
+                temp.append([op[0] + ['_'],op[1],op[2]])
+        operator_list = temp
+
+        temp = []
+        for op in operator_list:        
+            if op[2] != 0:
+                temp.append([op[0]+['_'],op[1],op[2] - 1])
+            else:
+                for st in 'wedxza':
+                    temp.append([op[0]+[st+'j'],op[1],aCD -1])
+                temp.append([op[0] + ['_'],op[1],op[2]])
+        operator_list = temp
+    return operator_list
+def get_pos_att_list(me,my_operator_list):
+    t1 = []
+    t2 = []
+    for my_operator in my_operator_list:
+        my_pos_list = []
+        my_att_list = []
+        my_pos = (me.x,me.y)
+        for i in range(len(my_operator[0])):
+            if i%2 == 0:#移动
+                if my_operator[0][i] == '_':
+                    my_pos_list.append(my_pos)
+                else:#wedxza
+                    d = dir[s2i[my_operator[0][i][0]]]
+                    my_pos = (my_pos[0]+d[0],my_pos[1]+d[1])
+                    my_pos_list.append(my_pos)
+            else:#攻击
+                if my_operator[0][i] == '_':
+                    my_att_list.append([])
+                else:#wedxz
+                    if me.masterWeapon.weaponType == 2:
+                        attack = mweapon1(my_pos,s2i[my_operator[0][i][0]])
+                        my_att_list.append(attack)
+                    if me.masterWeapon.weaponType == 1:
+                        attack = mweapon1(my_pos,s2i[my_operator[0][i][0]])
+                        my_att_list.append(attack)
+        t1.append(my_pos_list)
+        t2.append(my_att_list)
+    return t1,t2
+def compute_score(me,en,my_operator_list,en_operator_list):
+    my_pos_list,my_att_list = get_pos_att_list(me,my_operator_list)
+    en_pos_list,en_att_list = get_pos_att_list(en,en_operator_list)
+    for i in range(len(my_pos_list)):
+        if my_pos_list[i] in en_att_list[i]:
+            
+            print('i')
+    return 
+def seach(env,goto,flag):
+    assert len(env.enemy) != 0
+    for enemy in env.enemy:
+        if (enemy.x,enemy.y) == goto[flag][1]:
+            me = env.us[flag]
+            en = enemy
+            my_operator_list = get_operator(me.moveCD,me.moveCDLeft,me.masterWeapon.attackCD,me.masterWeapon.attackCDLeft,5)
+            en_operator_list = get_operator(en.moveCD,en.moveCDLeft,en.masterWeapon.attackCD,en.masterWeapon.attackCDLeft,5)
+            get_max_operator = compute_score(me,en,my_operator_list,en_operator_list)
 def attackDenfence(env,goto,flag):
     a = goTo(goto[flag][0],goto[flag][1])
+    if distance(goto[flag][0],goto[flag][1]) <= 4:
+        a = seach(env,goto,flag)
+    
     return s[a]
 
 class Model(object):
@@ -116,7 +188,7 @@ class Model(object):
             for enemy in env.enemy:
                 if enemy.isAlive == True:
                     for us in env.us:
-                        if 0<distance((enemy.x,enemy.y),(us.x,us.y))<=6:
+                        if 0<distance((enemy.x,enemy.y),(us.x,us.y))<=8:
                             self.state[us.characterID] = 2
                             self.goto[us.characterID] = [(us.x,us.y),(enemy.x,enemy.y)]       
         if env.frame > self.frame:
@@ -184,7 +256,7 @@ if __name__ == '__main__':
         actionResp = saveInfo.actionResp
         packet.data = actionResp
         model.env = model.env.readEnv(actionResp)
-        #refreshUI(ui,packet)
+        refreshUI(ui,packet)
         model.input(model.env)
         st = model.output(characterID)
         print('frame = {}'.format(actionResp.frame),'action:{}'.format(st))
