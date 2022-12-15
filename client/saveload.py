@@ -34,7 +34,7 @@ def getresp(sequence=None):
     with open(saveloadPath, 'r') as file:
         content = file.readlines()[-1200:]
         if sequence == None:
-            jsonObj: dict = json.loads(content[-1])
+            jsonObj: dict = json.loads(content[-100])
             sequence = jsonObj['sequence']
         for lineStr in content:
             jsonObj: dict = json.loads(lineStr)

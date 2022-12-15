@@ -5,74 +5,99 @@ from saveload import *
 from ui import *
 import subprocess
 import time
-import copy
+
 def fill_block(env,flag):
-    not_my_land=[]
+    count = [0,0,0,0,0,0]
     pos = (env.us[flag].x,env.us[flag].y)
-    minpos = (24,24)
+    minpos =[(24,24),(24,24),(24,24),(24,24),(24,24),(24,24),(24,24)]
     for block in env.map.blocks:
-        if block.valid == True:
+        if block.valid == True and (block.x,block.y)!=(0,0):
             if not (block.color == env.us[0].color and env.frame == block.frame):
-                not_my_land.append((block.x,block.y))
-    for i in not_my_land:
-        if 0<distance(pos,i)<=distance(pos,minpos):
-            minpos = i
-    
-    a = goTo(pos , minpos)
-    if env.us[flag].masterWeapon.weaponType == 1:
-        mudi = mweapon1(pos,a)
+                if pos != (block.x,block.y):
+                    a = goTo(pos , (block.x,block.y))
+                else:
+                    a = 1
+                count[a]+=1 
+                if 0 < distance(pos,(block.x,block.y))<=distance(pos,minpos[a]):
+                    minpos[a] = (block.x,block.y)
+                    if distance(pos,minpos[a]) <= distance(pos,minpos[6]):
+                        minpos[6] = minpos[a]
+    for i in range(len(count)):
+        if count[i] == max(count):
+            break
+    if count[i]>50 :
+        minpos = minpos[i]
     else:
-        mudi = mweapon2(pos,a)
-    if (env.us[flag].masterWeapon.attackCDLeft == 0) and (minpos in mudi):
+        minpos = minpos[6]
+    a = goTo(pos , minpos)
+    # if env.us[flag].masterWeapon.weaponType == 1:
+    #     mudi = mweapon1(pos,a)
+    # else:
+    #     mudi = mweapon2(pos,a)
+    if (env.us[flag].masterWeapon.attackCDLeft == 0):
         return s[a]+'j'
     if (env.us[flag].moveCDLeft == 0) and distance(pos,minpos) != 1:
         return s[a]+'s'
 
     return s[a]
-
+def circle(r = 6,reverse = 0):#从2开始
+    x = 20 -r#18
+    y = r#2
+    l1 = line((x,-y),(x,-x))
+    l2 = line((x,-x),(y,-x))
+    l3 = line((y,-x),(y,-y))
+    l4 = line((y,-y),(x,-y))
+    if reverse == 0:
+        road = [(l1[:-1],2),(l2[:-1],1),(l3[:-1],5),(l4[:-1],4)]
+    else:
+        road = [(l1[1:],5),(l2[1:],4),(l3[1:],2),(l4[1:],1)]
+    return road
 def cruise(env,flag):
     character = env.us[flag]
     x = character.x
     y = character.y
     pos = (x,y)
-    if flag == 0:#角色0
-        l1 = line((18,-2),(18,-18))
-        l2 = line((18,-18),(2,-18))
-        l3 = line((2,-18),(2,-2))
-        l4 = line((2,-2),(18,-2))
+    env.dir[flag] = None
+    if env.us[flag].moveCD == 4:
+        rd = 5
+    if env.us[flag].moveCD == 3:
+        rd = 1
+    if env.us[flag].moveCD == 2:
+        rd = 4
+    if env.us[flag].moveCD == 1:
+        rd = 7
+    if flag == 0:
+        road = circle(rd)
     if flag == 1:#角色1
-        l1 = line((13,-7),(13,-13))
-        l2 = line((13,-13),(7,-13))
-        l3 = line((7,-13),(7,-7))
-        l4 = line((7,-7),(13,-7))
-    if pos in l1[:-1]:
-        env.dir[flag] = 2
-    elif pos in l2[:-1]:
-        env.dir[flag] = 1 
-    elif pos in l3[:-1]:
-        env.dir[flag] = 5
-    elif pos in l4[:-1]:
-        env.dir[flag] = 4
-    else:
-        l = list(set(l1+l2+l3+l4))
+        road = circle(rd,reverse=1)
+    l = []
+    for r in road:
+        if pos in r[0]:
+            env.dir[flag] = r[1]
+        l.extend(r[0])
+    if env.dir[flag] == None:
+        l = list(set(l))
+
         mind = 24
         for i in l:
             if distance(pos,i)<= mind:
                 mind = distance(pos,i)
                 pos2 = i
         env.dir[flag] = goTo(pos,pos2)
+
+
     output = s[env.dir[flag]]
 
     if env.us[flag].moveCDLeft == 0:
         output += 's'
     if env.us[flag].masterWeapon.attackCDLeft == 0:#使用主武器
         output += 'j'
-
-
-    if env.us[flag].moveCD <= 2:
-        output = fill_block(env,flag)
+    # if env.us[flag].moveCD <= 2:
+    #     output = fill_block(env,flag)
 
     return output
+
+
 def findTool(env):
     tool_list = []
     for block in env.map.blocks:
@@ -81,6 +106,8 @@ def findTool(env):
                 if obj.type == ObjType.Item:
                     tool_list.append(block)
     return tool_list
+
+
 def toolPick(env,tool_list):
     blood = []
     speed = []
@@ -176,7 +203,7 @@ class Model(object):
             for enemy in env.enemy:
                 if enemy.isAlive == True:
                     for us in env.us:
-                        if 0<distance((enemy.x,enemy.y),(us.x,us.y))<=10:
+                        if 0<distance((enemy.x,enemy.y),(us.x,us.y))<=8:
                             self.state[us.characterID] = 2
                             self.goto[us.characterID] = [(us.x,us.y),(enemy.x,enemy.y)]       
         if env.frame > self.frame:
@@ -184,6 +211,7 @@ class Model(object):
             self.condition.acquire()
             self.condition.notify()
             self.condition.release()
+
 
     def output(self,characterID):
         a = time.time()
@@ -204,29 +232,24 @@ class Model(object):
                     output[flag] = s[(s2i[output[flag]] - self.env.us[flag].moveCDLeft)%6]
                 if self.env.us[flag].isAlive == False:#死亡不输入
                     output[flag] = ''
+                if self.env.frame >= 200:
+                    if 'j' in output[flag]:
+                        output[flag] = 'i' + output[flag]
+                    else:
+                        output[flag] = 'u' + output[flag]
+                   
+
             self.result = output
             if self.actionResp:
                 save(self.actionResp, self.result)
                 with open('log_output.txt','a') as f:
                     print('frame:{}'.format(self.actionResp.frame),'action{}'.format(self.result),'state:{}'.format(self.state),file=f)
-                    print('bengle :(')
+
             return self.result[characterID]
         else:
             return self.result[characterID]
-# def getenv():
-#     findSequence = str(1670917645822) + "\n"
-#     findFlag = False
-#     with open(saveloadPath, 'r') as file:
-#         #findSequence = file.readline()
-#         for lineStr in file.readlines()[-600:]:
-#             if findFlag:
-#                 if len(lineStr) == len(findSequence):
-#                     break
-#                 jsonObj: dict = json.loads(lineStr)
-#                 saveInfo: SaveInfo = SaveInfo(Env().from_json(json.dumps(jsonObj['env'])), jsonObj['actions'])
-#                 yield saveInfo
-#             if lineStr == findSequence:
-#                 findFlag = True
+
+
 if __name__ == '__main__':
     '''加载特定一次训练的信息'''
     packet =  PacketResp()
