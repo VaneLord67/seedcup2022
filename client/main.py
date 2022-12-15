@@ -92,8 +92,8 @@ def cliGetInitReq1():
     """Get init request from user input."""
     # masterWeaponType = input("Make choices!\nmaster weapon type: [select from {1-2}]: ")
     # slaveWeaponType = input("slave weapon type: [select from {1-2}]: ")
-    masterWeaponType = "1"
-    slaveWeaponType = "1"
+    masterWeaponType = "2"
+    slaveWeaponType = "2"
     return InitReq(
         MasterWeaponType(int(masterWeaponType)), SlaveWeaponType(int(slaveWeaponType))
     )
@@ -102,7 +102,7 @@ def cliGetInitReq2():
     # masterWeaponType = input("Make choices!\nmaster weapon type: [select from {1-2}]: ")
     # slaveWeaponType = input("slave weapon type: [select from {1-2}]: ")
     masterWeaponType = "2"
-    slaveWeaponType = "1"
+    slaveWeaponType = "2"
     return InitReq(
         MasterWeaponType(int(masterWeaponType)), SlaveWeaponType(int(slaveWeaponType))
     )
