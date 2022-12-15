@@ -25,7 +25,7 @@ class MasterWeapon(Weapon):
         super().__init__(weaponType, attackCD, attackCDLeft)
 
 
-class SlaveWeapon(Weapon):
+class SlaveWeapon1(Weapon):
     def __init__(
         self,
         weaponType: SlaveWeaponType = SlaveWeaponType.Kiwi,
@@ -54,7 +54,7 @@ class Character(JsonBase):
         isGod: bool = False,
         rebornTimeLeft: int = 0,
         godTimeLeft: int = 0,
-        slaveWeapon: SlaveWeapon = SlaveWeapon(),
+        slaveWeapon: SlaveWeapon1 = SlaveWeapon1(),
         masterWeapon: MasterWeapon = MasterWeapon(),
     ) -> None:
         super().__init__()
@@ -90,6 +90,8 @@ class Character(JsonBase):
         # buggy
         value = d.pop("masterWeapon")
         self.masterWeapon = MasterWeapon().from_json(json.dumps(value))
+        slaveWeaponValue = d.pop("slaveWeapon")
+        self.slaveWeapon = SlaveWeapon1().from_json(json.dumps(slaveWeaponValue))
         return self
 
 
